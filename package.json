@@ -1,0 +1,19 @@
+{
+  "name": "personalcode",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/renatoCorbellini/PersonalCode.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/renatoCorbellini/PersonalCode/issues"
+  },
+  "homepage": "https://github.com/renatoCorbellini/PersonalCode#readme"
+}
