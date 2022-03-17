@@ -17,9 +17,11 @@
 //pass in ControlName to validate a single item or nothing to validate everything.
 var ErrorReporting = true;
 
+// Validate wizard step 1
 var ErrorReportingA = true;
 ErrorReportingA = VV.Form.Template.SectionAValidation();
 
+// Validate wizard step 1
 var ErrorReportingB = true;
 ErrorReportingB = VV.Form.Template.SectionBValidation();
 
