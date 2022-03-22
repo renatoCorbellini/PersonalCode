@@ -5,12 +5,12 @@ AJAX: Asynchronous Javascript And XML.
 XML is a light format used to send data from a server to a browser, 
 from a server to another server, etc.
 
-Jason is another commonly used format to send data.
+JSON (JavaScript Object Notation) is another commonly used format to send data.
 
 To use this data received from a server in a specific format, we 
 need to parse it into Javascript usable code.
 
-Basic async operation method:
+Basic async operation:
 setTimeout(callBackFunct, numbMiliseconds); 
 
 setTimeout(() => {
