@@ -1,0 +1,31 @@
+Video: https://www.youtube.com/watch?v=_8gHHBlbziw&t=4s
+
+AJAX: Asynchronous Javascript And XML.
+
+XML is a light format used to send data from a server to a browser, 
+from a server to another server, etc.
+
+Jason is another commonly used format to send data.
+
+To use this data received from a server in a specific format, we 
+need to parse it into Javascript usable code.
+
+Basic async operation method:
+setTimeout(callBackFunct, numbMiliseconds); 
+
+setTimeout(() => {
+	// call back func code goes here
+}, numbMiliseconds); 
+
+All the code that we write inside the callback function is going to 
+be asynchronous and is going to wait the numbMiliseconds specified 
+before starting to run.
+
+The program continues running the script until it receives a response 
+from the asynchronous method.
+
+A promise is an object that gives back a result of an asynchronous 
+operation or a failure of an asynchronous operation.
+
+Adding AsyncAwait doesn't change anything in the background, we are 
+still working with promises, but it is an even easier syntax to write.
