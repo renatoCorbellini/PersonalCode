@@ -4,10 +4,10 @@ module.exports.getCredentials = function () {
   var options = {};
   options.customerAlias = "RenatoCorbellini";
   options.databaseAlias = "Main";
-  options.userId = "renato.corbellini+api@onetree.com";
-  options.password = "query123";
-  options.clientId = "799f5847-7017-4adf-82ef-c8e2964c3e60";
-  options.clientSecret = "5tq77/j72+biSdHxHkPFOpsjl7rNRL4x16GtO/8XFp8=";
+  options.userId = "renato.api";
+  options.password = "p";
+  options.clientId = "3f03af1d-82dc-4c08-b99c-855b75026764";
+  options.clientSecret = "tYz/rvU+4NPAV5uBOaHP9Hpct8ctemTItjzPs1qH930=";
   return options;
 };
 
@@ -50,7 +50,8 @@ module.exports.main = async function (ffCollection, vvClient, response) {
      Configurable Variables
     ************************/
 
-  const someTemplateName = "TEMPLATENAME";
+  const purchaseOrderTemplateName = "PurchaseOrderExample";
+  const invoiceTemplateName = "InvoiceCreation";
 
   /*****************
      Script Variables
@@ -233,16 +234,69 @@ module.exports.main = async function (ffCollection, vvClient, response) {
     // 1.GET THE VALUES OF THE FIELDS
 
     const formID = getFieldValueByName("Form ID");
-    const firstName = getFieldValueByName("First Name");
+    const totalWithTax = getFieldValueByName("Total Price with Tax");
+    const description = getFieldValueByName("Product Description");
+    const quantity = getFieldValueByName("Product Quantity");
+    const unitPrice = getFieldValueByName("Product Unit Price");
+    const totalPPrice = getFieldValueByName("Product Total Price");
 
     // 2.CHECKS IF THE REQUIRED PARAMETERS ARE PRESENT
 
-    if (!formID || !firstName) {
+    if (!formID) {
       // It could be more than one error, so we need to send all of them in one response
       throw new Error(errorLog.join("; "));
     }
 
     // 3.YOUR CODE GOES HERE //
+    shortDescription = `Get form ${formID}`;
+
+    const getFormsParams = {
+      q: `[Form ID] eq '${formID}'`,
+      expand: true, // true to get all the form's fields
+      // fields: 'id,name', // to get only the fields 'id' and 'name'
+    };
+
+    const getFormsRes = await vvClient.forms
+      .getForms(getFormsParams, purchaseOrderTemplateName)
+      .then((res) => parseRes(res))
+      .then((res) => checkMetaAndStatus(res, shortDescription))
+      .then((res) => checkDataPropertyExists(res, shortDescription));
+    //  .then((res) => checkDataIsNotEmpty(res, shortDescription));
+    //  If you want to throw an error and stop the process if no data is returned, uncomment the line above
+
+    if (getFormsRes.data.length == 0) {
+      // Form doesn't exist
+    } else {
+      const shortDescription = `Post form ${invoiceTemplateName}`;
+
+      const newFormData = {
+        "Invoice Total Price": totalWithTax,
+        "Product Description": description,
+        "Product Quantity": quantity,
+        "Product Unit Price": unitPrice,
+        "Product Total": totalPPrice,
+        "Agency Administrator": "Some value",
+        /* "Agency ID": aVariable,
+        "Agency or LES Program": AgencyLegalName,
+        "Agency Selected": agencySelected,
+        "Employee First Name": FirstName,
+        "Employee Last Name": LastName,
+        "Provider ID": IndividualRecordFormID,
+        "Start Date": moment().format("L"),
+        ddEmployeeType: employeeType,
+        Email: Email,
+        Status: status, */
+      };
+
+      const postFormsRes = await vvClient.forms
+        .postForms(null, newFormData, invoiceTemplateName)
+        .then((res) => parseRes(res))
+        .then((res) => checkMetaAndStatus(res, shortDescription))
+        .then((res) => checkDataPropertyExists(res, shortDescription))
+        .then((res) => checkDataIsNotEmpty(res, shortDescription));
+
+      // Remember to add the helper functions parseRes, checkMetaAndStatus, checkDataPropertyExists and checkDataIsNotEmpty
+    }
 
     // 4.BUILD THE SUCCESS RESPONSE ARRAY
 
