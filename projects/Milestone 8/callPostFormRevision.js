@@ -1,6 +1,6 @@
 // PROCESS NAME for TEMPLATE NAME
 
-var webServiceName = "milestone8Test";
+var webServiceName = "milestone8Test2";
 var formName = "PurchaseOrderExample";
 var message; // the message is set below
 
@@ -66,8 +66,6 @@ $.when(CallServerSide())
           message = formName + " has been saved successfully.";
 
           // HANDLE SUCCESS RESPONSE HERE
-          var idToBeUpdated = resp.data[2];
-          VV.Form.SetFieldValue("RelatedInvoiceID", idToBeUpdated);
 
           // Alway use .then for waiting for the form to save before running another function
           VV.Form.DoAjaxFormSave();

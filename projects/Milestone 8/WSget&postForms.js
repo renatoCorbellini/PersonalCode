@@ -51,7 +51,7 @@ module.exports.main = async function (ffCollection, vvClient, response) {
     ************************/
 
   const purchaseOrderTemplateName = "PurchaseOrderExample";
-  const invoiceTemplateName = "InvoiceCreation";
+  const invoiceTemplateName = "Invoice";
 
   /*****************
      Script Variables
@@ -234,11 +234,6 @@ module.exports.main = async function (ffCollection, vvClient, response) {
     // 1.GET THE VALUES OF THE FIELDS
 
     const formID = getFieldValueByName("Form ID");
-    const totalWithTax = getFieldValueByName("Total Price with Tax");
-    const description = getFieldValueByName("Product Description");
-    const quantity = getFieldValueByName("Product Quantity");
-    const unitPrice = getFieldValueByName("Product Unit Price");
-    const totalPPrice = getFieldValueByName("Product Total Price");
 
     // 2.CHECKS IF THE REQUIRED PARAMETERS ARE PRESENT
 
@@ -260,48 +255,38 @@ module.exports.main = async function (ffCollection, vvClient, response) {
       .getForms(getFormsParams, purchaseOrderTemplateName)
       .then((res) => parseRes(res))
       .then((res) => checkMetaAndStatus(res, shortDescription))
-      .then((res) => checkDataPropertyExists(res, shortDescription));
-    //  .then((res) => checkDataIsNotEmpty(res, shortDescription));
+      .then((res) => checkDataPropertyExists(res, shortDescription))
+      .then((res) => checkDataIsNotEmpty(res, shortDescription));
     //  If you want to throw an error and stop the process if no data is returned, uncomment the line above
 
-    if (getFormsRes.data.length == 0) {
-      // Form doesn't exist
-    } else {
-      const shortDescription = `Post form ${invoiceTemplateName}`;
+    shortDescription = `Post form ${invoiceTemplateName}`;
+    const formData = getFormsRes.data[0];
 
-      const newFormData = {
-        "Invoice Total Price": totalWithTax,
-        "Product Description": description,
-        "Product Quantity": quantity,
-        "Product Unit Price": unitPrice,
-        "Product Total": totalPPrice,
-        "Agency Administrator": "Some value",
-        /* "Agency ID": aVariable,
-        "Agency or LES Program": AgencyLegalName,
-        "Agency Selected": agencySelected,
-        "Employee First Name": FirstName,
-        "Employee Last Name": LastName,
-        "Provider ID": IndividualRecordFormID,
-        "Start Date": moment().format("L"),
-        ddEmployeeType: employeeType,
-        Email: Email,
-        Status: status, */
-      };
+    const newFormData = {
+      "Invoice Total Price": formData["total Price with Tax"],
+      "Product Description": formData["product Description"],
+      "Product Quantity": formData["product Quantity"],
+      "Product Unit Price": formData["product Unit Price"],
+      "Product Total": formData["product Total Price"],
+    };
 
-      const postFormsRes = await vvClient.forms
-        .postForms(null, newFormData, invoiceTemplateName)
-        .then((res) => parseRes(res))
-        .then((res) => checkMetaAndStatus(res, shortDescription))
-        .then((res) => checkDataPropertyExists(res, shortDescription))
-        .then((res) => checkDataIsNotEmpty(res, shortDescription));
+    const postFormsRes = await vvClient.forms
+      .postForms(null, newFormData, invoiceTemplateName)
+      .then((res) => parseRes(res))
+      .then((res) => checkMetaAndStatus(res, shortDescription))
+      .then((res) => checkDataPropertyExists(res, shortDescription))
+      .then((res) => checkDataIsNotEmpty(res, shortDescription));
 
-      // Remember to add the helper functions parseRes, checkMetaAndStatus, checkDataPropertyExists and checkDataIsNotEmpty
-    }
+    console.log(newFormData);
+    console.log(postFormsRes);
+
+    // Remember to add the helper functions parseRes, checkMetaAndStatus, checkDataPropertyExists and checkDataIsNotEmpty
 
     // 4.BUILD THE SUCCESS RESPONSE ARRAY
 
     outputCollection[0] = "Success";
     outputCollection[1] = "Success short description here";
+    outputCollection[2] = postFormsRes.data.instanceName;
   } catch (error) {
     logger.info("Error encountered" + error);
 
