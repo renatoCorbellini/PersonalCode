@@ -257,7 +257,6 @@ module.exports.main = async function (ffCollection, vvClient, response) {
       .then((res) => checkMetaAndStatus(res, shortDescription))
       .then((res) => checkDataPropertyExists(res, shortDescription))
       .then((res) => checkDataIsNotEmpty(res, shortDescription));
-    //  If you want to throw an error and stop the process if no data is returned, uncomment the line above
 
     const formGUID = getFormsRes.data[0].revisionId;
     shortDescription = `Update form ${formGUID}`;
@@ -265,23 +264,13 @@ module.exports.main = async function (ffCollection, vvClient, response) {
       "Invoice Total Price": 2000,
     };
 
-    const postFormRevRes = await vvClient.forms
+    await vvClient.forms
       .postFormRevision(null, formFieldsToUpdate, invoiceTemplateName, formGUID)
       .then((res) => parseRes(res))
       .then((res) => checkMetaAndStatus(res, shortDescription))
       .then((res) => checkDataPropertyExists(res, shortDescription))
       .then((res) => checkDataIsNotEmpty(res, shortDescription));
 
-    /* const formGUID = getFormsResp.data[0]["revisionId"];
-    const shortDescription = `Update form ${formGUID} `;
-    const formTemplateName = "Bill Line Item";
-
-            const postFormRevRes = await vvClient.forms
-                .postFormRevision(null, billLineItemData, formTemplateName, formGUID)
-                .then((res) => parseRes(res))
-                .then((res) => checkMetaAndStatus(res, shortDescription))
-                .then((res) => checkDataPropertyExists(res, shor
- */
     // 4.BUILD THE SUCCESS RESPONSE ARRAY
 
     outputCollection[0] = "Success";

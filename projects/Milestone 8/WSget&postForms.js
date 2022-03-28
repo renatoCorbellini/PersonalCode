@@ -257,7 +257,6 @@ module.exports.main = async function (ffCollection, vvClient, response) {
       .then((res) => checkMetaAndStatus(res, shortDescription))
       .then((res) => checkDataPropertyExists(res, shortDescription))
       .then((res) => checkDataIsNotEmpty(res, shortDescription));
-    //  If you want to throw an error and stop the process if no data is returned, uncomment the line above
 
     shortDescription = `Post form ${invoiceTemplateName}`;
     const formData = getFormsRes.data[0];
@@ -276,11 +275,6 @@ module.exports.main = async function (ffCollection, vvClient, response) {
       .then((res) => checkMetaAndStatus(res, shortDescription))
       .then((res) => checkDataPropertyExists(res, shortDescription))
       .then((res) => checkDataIsNotEmpty(res, shortDescription));
-
-    console.log(newFormData);
-    console.log(postFormsRes);
-
-    // Remember to add the helper functions parseRes, checkMetaAndStatus, checkDataPropertyExists and checkDataIsNotEmpty
 
     // 4.BUILD THE SUCCESS RESPONSE ARRAY
 
