@@ -13,11 +13,12 @@ module.exports.getCredentials = function () {
 
 module.exports.main = async function (ffCollection, vvClient, response) {
   /*
-    Script Name:    relateFormByDocId
-    Customer:       Renato Corbellini
-    Purpose:        The purpous of this WS is to relate to form records from different form templates
+    Script Name:    WebService name 
+    Customer:       Project Name
+    Purpose:        Brief description of the purpose of the script
     Parameters:     The following represent variables passed into the function:
-                    
+                    parameter1: Description of parameter1
+                    parameter2: Description of parameter2
     Return Object:
                     outputCollection[0]: Status
                     outputCollection[1]: Short description message
@@ -27,16 +28,14 @@ module.exports.main = async function (ffCollection, vvClient, response) {
               2° Does that
               ...
  
-    Date of Dev:   03/31/2022
-    Last Rev Date: 04/01/2022
+    Date of Dev:   10/19/2021
+    Last Rev Date: 
  
     Revision Notes:
-     03/31/2022 - RENATO CORBELLINI:  First Setup of the script
-     04/01/2022 - RENATO CORBELLINI:  Adding error handling when the relationships between 
-     the form records already exists
+     07/30/2021 - DEVELOPER NAME HERE:  First Setup of the script
     */
 
-  logger.info("Start of the process relateFormByDocId at " + Date());
+  logger.info("Start of the process SCRIPT NAME HERE at " + Date());
 
   /**************************************
      Response and error handling variables
@@ -52,7 +51,8 @@ module.exports.main = async function (ffCollection, vvClient, response) {
     ************************/
 
   const parentTemplateName = `Customer Complaint`;
-  const childFormID = "Document-000015";
+  const childTemplateName = "Document Upload";
+  const childFormID = "Document-000009";
 
   /*****************
      Script Variables
@@ -244,23 +244,41 @@ module.exports.main = async function (ffCollection, vvClient, response) {
     }
 
     // 3.YOUR CODE GOES HERE //
-    // 3.1 Get the "parentGUID" or "revisionID" of a given template
+    // 3.1 Get the "parentGUID" or "revisionId" of a given template
 
     shortDescription = `Get form with revisionID ${parentFormID}`;
 
-    const getFormsParams = {
+    const getFormsParamsParent = {
       q: `[Form ID] eq '${parentFormID}'`,
       expand: true,
     };
 
     const getParentFormRes = await vvClient.forms
-      .getForms(getFormsParams, parentTemplateName)
+      .getForms(getFormsParamsParent, parentTemplateName)
       .then((res) => parseRes(res))
       .then((res) => checkMetaAndStatus(res, shortDescription))
       .then((res) => checkDataPropertyExists(res, shortDescription))
       .then((res) => checkDataIsNotEmpty(res, shortDescription));
 
     const parentGUID = getParentFormRes.data[0].revisionId;
+
+    // 3.2 Get the "childGUID" or "revisionId" of a given template
+
+    shortDescription = `Get form with revisionID ${childFormID}`;
+
+    const getFormsParamsChild = {
+      q: `[instanceName] eq '${childFormID}'`,
+      expand: true,
+    };
+
+    const getChildFormRes = await vvClient.forms
+      .getForms(getFormsParamsChild, childTemplateName)
+      .then((res) => parseRes(res))
+      .then((res) => checkMetaAndStatus(res, shortDescription))
+      .then((res) => checkDataPropertyExists(res, shortDescription))
+      .then((res) => checkDataIsNotEmpty(res, shortDescription));
+
+    const childGUID = getChildFormRes.data[0].revisionId;
 
     // 2.Get related forms
 
@@ -275,7 +293,7 @@ module.exports.main = async function (ffCollection, vvClient, response) {
       .then((res) => checkMetaAndStatus(res, shortDescription))
       .then((res) => checkDataPropertyExists(res, shortDescription));
 
-    // 3. Check if the relationship between the form records already exists
+    // 3. Check if the relationship between the forms records already exists
 
     var relationshipExists = false;
 
@@ -283,10 +301,10 @@ module.exports.main = async function (ffCollection, vvClient, response) {
       // The form doesn't have existing relationship
       // 4. Relate forms by doc ID call
 
-      shortDescription = `relating forms: ${parentGUID} and form ${childFormID}`;
+      shortDescription = `Relate Forms`;
 
       await vvClient.forms
-        .relateFormByDocId(parentGUID, childFormID)
+        .relateForm(parentGUID, childGUID)
         .then((res) => parseRes(res))
         .then((res) => checkMetaAndStatus(res, shortDescription));
     } else {
@@ -298,7 +316,7 @@ module.exports.main = async function (ffCollection, vvClient, response) {
       for (let index = 0; index < dataArray.length; index++) {
         var currentRelation = dataArray[index];
 
-        if (currentRelation.instanceName == childFormID) {
+        if (currentRelation.revisionId == childGUID) {
           // The relationship already exists
           relationshipExists = true;
           throw new Error(
@@ -307,20 +325,26 @@ module.exports.main = async function (ffCollection, vvClient, response) {
         }
       }
 
-      // Look for foreach, .map, filter
-
       if (!relationshipExists) {
         // The form record has relationships but no relationship is with the child form record
         // 4. Relate forms by doc ID call
 
-        shortDescription = `relating forms: ${parentGUID} and form ${childFormID}`;
+        shortDescription = `Relate Forms`;
 
         await vvClient.forms
-          .relateFormByDocId(parentGUID, childFormID)
+          .relateForm(parentGUID, childGUID)
           .then((res) => parseRes(res))
           .then((res) => checkMetaAndStatus(res, shortDescription));
       }
     }
+
+    // 3.3 Relate forms call
+
+    //vvClient.forms.relateForm(currentFormRevisionId, childFormRevisionId)
+    //This function relates two form records of different forms templates.
+    //Get as parameter:
+    //currentFormRevisionId: The "formRevisionId" from the current form
+    //childFormRevisionId: The "formRevisionId" of the child form
 
     // 4.BUILD THE SUCCESS RESPONSE ARRAY
 
