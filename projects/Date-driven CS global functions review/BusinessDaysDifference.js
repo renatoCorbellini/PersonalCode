@@ -1,12 +1,12 @@
 /*
     Script Name:   BusinessDaysDifference
     Customer:      VisualVault
-    Purpose:       This function takes in 2 dates and calculates the number of calendar days between them.  
+    Purpose:       This function takes in 2 dates and calculates the number of business days between them.  
     Parameters:    The following represent variables passed into the function:  
                    date1, date2:         date as a string from getfieldvalue.
 
     Return Value:  The following represents the value being returned from this function:
-                        days:  Returns a number that represents the days between 2 dates.        
+                        days:  Returns a number that represents the business days between 2 dates.        
 
 
     Date of Dev:   06/01/2017
@@ -36,6 +36,7 @@ if (
   date1casted.getDate() == date2casted.getDate() &&
   date1casted.getMonth() == date2casted.getMonth()
 ) {
+  // Dates are the same
   days = 0;
 } else {
   // Convert both dates to milliseconds
@@ -71,7 +72,7 @@ if (
     }
   } else {
     days = days * -1; //Make positive number for good calculation in next step.
-    var weeks = Math.floor(days / 7);
+    weeks = Math.floor(days / 7);
 
     days = days - weeks * 2;
 
