@@ -18,7 +18,7 @@
     02/05/2020 - Jason Hatch and Max Rehbein:  Updated to handle same day excluding times.
     04/06/2022 - Renato Corbellini: Corrected and added comments. 
 
-    Considerations: When starting and finish days are Sundays, returns a business day less than expected
+    Considerations: If the last day is a business day, it includes that day in the difference
 */
 
 // Get 1 day in milliseconds
@@ -59,7 +59,7 @@ if (yearsAreEqual && monthsAreEqual && daysAreEqual) {
   var date2inMS = date2Cast.getTime();
 
   // Calculate the difference in milliseconds
-  var difference_ms = date1inMS - date2inMS;
+  var difference_ms = Math.abs(date1inMS - date2inMS);
 
   // Convert back to days and return
   daysDiff = Math.round(difference_ms / msInADay);
@@ -75,13 +75,19 @@ if (yearsAreEqual && monthsAreEqual && daysAreEqual) {
 
     // Remove weekend days not previously removed, there is a weekend between the starting day and the finish day
     // that doesn't complete a full week (it is not removed previously)
-    if (startDay - endDay > 0) daysDiff = daysDiff - 2;
+    // (error here, if the starting day is Saturday and the end day is Sunday, it should remove only one day, not two)
+    if (startDay - endDay > 0) {
+      daysDiff = daysDiff - 1;
+    }
 
     // Removes one weekend day if the starting day is Sunday and the final day is Saturday
     if (startDay == 0 && endDay == 6) daysDiff = daysDiff - 1;
 
     // Remove start day if span starts on Sunday but ends before Saturday
-    if (startDay == 0 && endDay != 6) daysDiff = daysDiff - 1;
+    // (error here, is entering the if statement even though the span starts on Sunday and ends on Sunday)
+    if (startDay == 0 && endDay != 6) {
+      //daysDiff = daysDiff - 1;
+    }
 
     // Remove end day if span ends on Saturday but starts after Sunday
     if (endDay == 6 && startDay != 0) daysDiff = daysDiff - 1;
