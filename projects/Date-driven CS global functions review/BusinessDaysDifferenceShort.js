@@ -13,10 +13,13 @@ var end = new Date(date2);
 var totalBusinessDays = 0;
 
 // normalize both start and end to beginning of the day
+// Change this to UTC hours
+// Test stting an hour near the limit of the thay and parsing it to UTC hour
 start.setHours(0, 0, 0, 0);
 end.setHours(0, 0, 0, 0);
 
 var current = new Date(start);
+// Exclude starting day
 current.setDate(current.getDate() + 1);
 var day;
 // loop through each day, checking

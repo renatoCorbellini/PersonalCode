@@ -12,57 +12,50 @@ module.exports.getCredentials = function () {
 };
 
 module.exports.main = async function (ffCollection, vvClient, response) {
-  /*
-    Script Name:    WebService name 
-    Customer:       Project Name
-    Purpose:        Brief description of the purpose of the script
-    Parameters:     The following represent variables passed into the function:
-                    parameter1: Description of parameter1
-                    parameter2: Description of parameter2
-    Return Object:
-                    outputCollection[0]: Status
-                    outputCollection[1]: Short description message
-                    outputCollection[2]: Data
-    Pseudo code: 
-              1° Does this
-              2° Does that
-              ...
+  /*Script Name:  EmployeeAssignmentVerify
+   Customer:      Florida Department of Health, Early Steps
+   Purpose:       The purpose of this process is to verify if the form record is unique.
+   Parameters:    Agency ID - (String, Required) Used in the query to verify if the record is unique or unique matched.
+                  Email - (String, Required) Used in the query to verify if the record is unique or unique matched.
+                  End Date - (String, Required) Used in the query to verify if the record is unique or unique matched.
+                  Record ID - (String, Required) Used in the query to verify if the record is unique or unique matched and LibUserUpdate.
+                  Start Date - (String, Required) Used in the query to verify if the record is unique or unique matched.
+                  Status - (String, Required) Used in the query to verify if the record is unique or unique matched.
+              
+   Return Array:  1. Status: 'Success', 'Error'
+                  2. Message
+                  3. Status of the verify call
+                  
+   Pseudo code:   1. Call VerifyUniqueRecord to determine whether the template record is unique per the passed in information.
+                  2. Send response with return array.
  
-    Date of Dev:   10/19/2021
-    Last Rev Date: 
- 
-    Revision Notes:
-     07/30/2021 - DEVELOPER NAME HERE:  First Setup of the script
-    */
+   Date of Dev:   4/7/2020
+   Last Rev Date: 4/7/2020
+   Revision Notes:
+   4/7/2020  - Rocky Borg: Script created
+   */
 
-  logger.info("Start of the process SCRIPT NAME HERE at " + Date());
+  logger.info("Start of the process EmployeeAssignmentVerify at " + Date());
 
-  /**************************************
-     Response and error handling variables
-    ***************************************/
+  /**********************
+   Configurable Variables
+  ***********************/
+  //Template ID for Employee Assignment
+  let TemplateID = "milestone10WS test harness";
 
-  // Response array to be returned
+  // Error message guidances
+  let missingFieldGuidance =
+    "Please provide a value for the missing field and try again, or contact a system administrator if this problem continues.";
+
+  // Response array populated in try or catch block, used in response sent in finally block.
   let outputCollection = [];
-  // Array for capturing error messages that may occur during the process
+  // Array for capturing error messages that may occur within helper functions.
   let errorLog = [];
 
-  /***********************
-     Configurable Variables
-    ************************/
-
-  const templateName = `milestone10WS test harness`;
-
-  /*****************
-     Script Variables
-    ******************/
-
-  // Describes the process being checked using the parsing and checking helper functions
-  let shortDescription = "";
-
-  /*****************
+  /****************
      Helper Functions
-    ******************/
-
+    *****************/
+  // Check if field object has a value property and that value is truthy before returning value.
   function getFieldValueByName(fieldName, isRequired = true) {
     /*
         Check if a field was passed in the request and get its value
@@ -105,240 +98,99 @@ module.exports.main = async function (ffCollection, vvClient, response) {
     return resp;
   }
 
-  function parseRes(vvClientRes) {
-    /*
-        Generic JSON parsing function
-        Parameters:
-            vvClientRes: JSON response from a vvClient API method
-        */
-    try {
-      // Parses the response in case it's a JSON string
-      const jsObject = JSON.parse(vvClientRes);
-      // Handle non-exception-throwing cases:
-      if (jsObject && typeof jsObject === "object") {
-        vvClientRes = jsObject;
-      }
-    } catch (e) {
-      // If an error occurs, it's because the resp is already a JS object and doesn't need to be parsed
-    }
-    return vvClientRes;
-  }
-
-  function checkMetaAndStatus(
-    vvClientRes,
-    shortDescription,
-    ignoreStatusCode = 999
-  ) {
-    /*
-        Checks that the meta property of a vvClient API response object has the expected status code
-        Parameters:
-            vvClientRes: Parsed response object from a vvClient API method
-            shortDescription: A string with a short description of the process
-            ignoreStatusCode: An integer status code for which no error should be thrown. If you're using checkData(), make sure to pass the same param as well.
-        */
-
-    if (!vvClientRes.meta) {
-      throw new Error(
-        `${shortDescription} error. No meta object found in response. Check method call parameters and credentials.`
-      );
-    }
-
-    const status = vvClientRes.meta.status;
-
-    // If the status is not the expected one, throw an error
-    if (status != 200 && status != 201 && status != ignoreStatusCode) {
-      const errorReason =
-        vvClientRes.meta.errors && vvClientRes.meta.errors[0]
-          ? vvClientRes.meta.errors[0].reason
-          : "unspecified";
-      throw new Error(
-        `${shortDescription} error. Status: ${vvClientRes.meta.status}. Reason: ${errorReason}`
-      );
-    }
-    return vvClientRes;
-  }
-
-  function checkDataPropertyExists(
-    vvClientRes,
-    shortDescription,
-    ignoreStatusCode = 999
-  ) {
-    /*
-        Checks that the data property of a vvClient API response object exists 
-        Parameters:
-            res: Parsed response object from the API call
-            shortDescription: A string with a short description of the process
-            ignoreStatusCode: An integer status code for which no error should be thrown. If you're using checkMeta(), make sure to pass the same param as well.
-        */
-    const status = vvClientRes.meta.status;
-
-    if (status != ignoreStatusCode) {
-      // If the data property doesn't exist, throw an error
-      if (!vvClientRes.data) {
-        throw new Error(
-          `${shortDescription} data property was not present. Please, check parameters and syntax. Status: ${status}.`
-        );
-      }
-    }
-
-    return vvClientRes;
-  }
-
-  function checkDataIsNotEmpty(
-    vvClientRes,
-    shortDescription,
-    ignoreStatusCode = 999
-  ) {
-    /*
-        Checks that the data property of a vvClient API response object is not empty
-        Parameters:
-            res: Parsed response object from the API call
-            shortDescription: A string with a short description of the process
-            ignoreStatusCode: An integer status code for which no error should be thrown. If you're using checkMeta(), make sure to pass the same param as well.
-        */
-    const status = vvClientRes.meta.status;
-
-    if (status != ignoreStatusCode) {
-      const dataIsArray = Array.isArray(vvClientRes.data);
-      const dataIsObject = typeof vvClientRes.data === "object";
-      const isEmptyArray = dataIsArray && vvClientRes.data.length == 0;
-      const isEmptyObject =
-        dataIsObject && Object.keys(vvClientRes.data).length == 0;
-
-      // If the data is empty, throw an error
-      if (isEmptyArray || isEmptyObject) {
-        throw new Error(
-          `${shortDescription} returned no data. Please, check parameters and syntax. Status: ${status}.`
-        );
-      }
-      // If it is a Web Service response, check that the first value is not an Error status
-      if (dataIsArray) {
-        const firstValue = vvClientRes.data[0];
-
-        if (firstValue == "Error") {
-          throw new Error(
-            `${shortDescription} returned an error. Please, check called Web Service. Status: ${status}.`
-          );
-        }
-      }
-    }
-    return vvClientRes;
-  }
-
-  async function searchForms(query) {
-    logger.info("Querying form records");
-
-    // Searchs forms using the provided query
-    const getFormsParams = { q: query };
-    const getFormsRes = await vvClient.forms
-      .getForms(getFormsParams, templateName)
-      .then((res) => parseRes(res))
-      .then((res) => checkMetaAndStatus(res, shortDescription))
-      .then((res) => checkDataPropertyExists(res, shortDescription))
-      .then((res) => checkDataIsNotEmpty(res, shortDescription));
-
-    return getFormsRes;
-  }
-
-  /**********
-     MAIN CODE 
-    **********/
-
   try {
-    // 1.GET THE VALUES OF THE FIELDS
-
+    /*********************
+     Form Record Variables
+    **********************/
+    //Create variables for the values on the form record
     const formID = getFieldValueByName("Form ID");
+    const firstName = getFieldValueByName("First Name");
+    const lastName = getFieldValueByName("Last Name");
+    const email = getFieldValueByName("Email");
+    const address = getFieldValueByName("Address");
 
-    // 2.CHECKS IF THE REQUIRED PARAMETERS ARE PRESENT
-
-    if (!formID) {
-      // It could be more than one error, so we need to send all of them in one response
-      throw new Error(errorLog.join("; "));
+    // Specific fields are detailed in the errorLog sent in the response to the client.
+    if (errorLog.length > 0) {
+      throw new Error(`${missingFieldGuidance}`);
     }
 
-    // 3.YOUR CODE GOES HERE //
+    /****************
+     BEGIN ASYNC CODE
+    *****************/
+    // STEP 1 - Call VerifyUniqueRecord to determine whether the template record is unique per the passed in information.
+    // Query formatted variables
 
-    shortDescription = `Get form with revisionID ${formID}`;
+    let uniqueRecordArr = [
+      {
+        name: "templateId",
+        value: TemplateID,
+      },
+      {
+        name: "query",
+        value: `[First Name] eq '${firstName}' AND [Last Name] eq '${lastName}' AND [Email] eq '${email}' AND [Address] eq '${address}'`,
+      },
+      {
+        name: "formId",
+        value: formID,
+      },
+    ];
 
-    const getFormsParams = {
-      q: `[Form ID] eq '${formID}'`,
-      expand: true,
-    };
+    let verifyUniqueResp = await vvClient.scripts.runWebService(
+      "LibFormVerifyUniqueRecord",
+      uniqueRecordArr
+    );
 
-    const getFormsRes = await vvClient.forms
-      .getForms(getFormsParams, templateName)
-      .then((res) => parseRes(res))
-      .then((res) => checkMetaAndStatus(res, shortDescription))
-      .then((res) => checkDataPropertyExists(res, shortDescription))
-      .then((res) => checkDataIsNotEmpty(res, shortDescription));
+    console.log(verifyUniqueResp);
+    let verifyUniqueData = verifyUniqueResp.hasOwnProperty("data")
+      ? verifyUniqueResp.data
+      : null;
+    let verifyUniqueStatus = verifyUniqueData.hasOwnProperty("status")
+      ? verifyUniqueData.status
+      : null;
 
-    // Processes the response from getForms()
-    const formData = JSON.parse(getFormsRes);
-
-    if (formData.meta) {
-      if (formData.meta.status === 200) {
-        if (formData.data) {
-          const moreThanOneRecord = formData.data.length > 1 ? true : false;
-          const noRecords = formData.data.length === 0 ? true : false;
-          const oneRecord = formData.data.length === 1 ? true : false;
-
-          if (moreThanOneRecord) {
-            outputCollection[2] = "Not Unique";
-            outputCollection[3] = "The record is NOT unique";
-          } else if (noRecords) {
-            outputCollection[2] = "Unique";
-            outputCollection[3] = "The record is unique";
-          } else if (oneRecord) {
-            const record = formData.data[0];
-            const recordNameEqualsFormId =
-              record.instanceName === formID ? true : false;
-            const recordRevisionIdEqualsFormId =
-              record.revisionId === formID ? true : false;
-
-            if (recordNameEqualsFormId || recordRevisionIdEqualsFormId) {
-              outputCollection[2] = "Unique Matched";
-              outputCollection[3] = "The record is unique";
-              outputCollection[4] = record.revisionId;
-            } else {
-              outputCollection[2] = "Not Unique";
-              outputCollection[3] = "The record is NOT unique";
-              outputCollection[4] = record.revisionId;
-            }
-          }
-        } else {
-          throw new Error("The query returned no data");
-        }
-      } else {
-        throw new Error("Call to query existing forms returned with an error");
-      }
-    } else {
+    if (verifyUniqueResp.meta.status !== 200) {
       throw new Error(
-        "Search form error. Check query format, template id, and credentials."
+        `There was an error when calling LibFormVerifyUniqueRecord.`
+      );
+    }
+    if (verifyUniqueData === null) {
+      throw new Error(
+        `Data was not be returned when calling LibFormVerifyUniqueRecord.`
+      );
+    }
+    if (verifyUniqueStatus === null) {
+      throw new Error(
+        `A status was not be returned when calling LibFormVerifyUniqueRecord.`
+      );
+    }
+    if (verifyUniqueStatus === "Error") {
+      throw new Error(
+        `The call to LibFormVerifyUniqueRecord returned with an error. ${verifyUniqueData.statusMessage}.`
+      );
+    }
+    if (verifyUniqueStatus === "Not Unique") {
+      throw new Error(
+        "This Employee Assignment record is a duplicate of another Record. Another Employee Assignment record already exists with the same First Name, Last Nane, Email and Address."
+      );
+    }
+    if (
+      verifyUniqueStatus !== "Unique" &&
+      verifyUniqueStatus !== "Unique Matched"
+    ) {
+      throw new Error(
+        `The call to LibFormVerifyUniqueRecord returned with an unhandled error.`
       );
     }
 
-    // 4.BUILD THE SUCCESS RESPONSE ARRAY
-
+    // STEP 2 - Send response with return array.
     outputCollection[0] = "Success";
-    outputCollection[1] = "Success short description here";
+    outputCollection[1] = "Unique";
   } catch (error) {
-    logger.info("Error encountered" + error);
-
-    // BUILDS THE ERROR RESPONSE ARRAY
-
+    // Log errors captured.
+    logger.info(JSON.stringify(`${error} ${errorLog}`));
     outputCollection[0] = "Error";
-
-    if (errorLog.length > 0) {
-      outputCollection[1] = "Errors encountered";
-      outputCollection[2] = `Error/s: ${errorLog.join("; ")}`;
-    } else {
-      outputCollection[1] = error.message
-        ? error.message
-        : `Unhandled error occurred: ${error}`;
-    }
+    outputCollection[1] = `${errorLog.join(" ")} ${error.message}`;
   } finally {
-    // SENDS THE RESPONSE
-
     response.json(200, outputCollection);
   }
 };
