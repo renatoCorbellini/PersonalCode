@@ -140,12 +140,12 @@ module.exports.main = async function (ffCollection, vvClient, response) {
     const ffcol = new clientLibrary.forms.formFieldCollection(uniqueRecordArr);
     await scriptToExecute.main(ffcol, vvClient, response);
 
-    const uniqueRecordResp = await vvClient.scripts.runWebService(
+    const verifyUniqueResp = await vvClient.scripts.runWebService(
       "LibFormVerifyUniqueRecord",
       uniqueRecordArr
     );
 
-    /* let verifyUniqueData = verifyUniqueResp.hasOwnProperty("data")
+    let verifyUniqueData = verifyUniqueResp.hasOwnProperty("data")
       ? verifyUniqueResp.data
       : null;
     let verifyUniqueStatus = verifyUniqueData.hasOwnProperty("status")
@@ -174,7 +174,7 @@ module.exports.main = async function (ffCollection, vvClient, response) {
     }
     if (verifyUniqueStatus === "Not Unique") {
       throw new Error(
-        "This Employee Assignment record is a duplicate of another Record. Another Employee Assignment record already exists with the same First Name, Last Name, Email and Address."
+        "This Record is a duplicate of another Record. Another Employee Assignment record already exists with the same First Name, Last Name, Email and Address."
       );
     }
     if (
@@ -184,12 +184,11 @@ module.exports.main = async function (ffCollection, vvClient, response) {
       throw new Error(
         `The call to LibFormVerifyUniqueRecord returned with an unhandled error.`
       );
-    } */
+    }
 
     // STEP 2 - Send response with return array.
     outputCollection[0] = "Success";
-    outputCollection[1] = uniqueRecordResp.data.status;
-    outputCollection[2] = uniqueRecordResp.data.statusMessage;
+    outputCollection[1] = "Message";
   } catch (error) {
     // Log errors captured.
     logger.info(JSON.stringify(`${error} ${errorLog}`));

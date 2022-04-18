@@ -63,16 +63,14 @@ $.when(CallServerSide())
     } else if (serverSentOKResponse) {
       if (wsSentResponse) {
         if (wsSentSuccessResponse) {
-          message = formName + " " + resp.data[1];
+          message = formName + " is unique.";
 
           // HANDLE SUCCESS RESPONSE HERE
           var idToBeUpdated = resp.data[2];
           VV.Form.SetFieldValue("RelatedInvoiceID", idToBeUpdated);
 
           // Alway use .then for waiting for the form to save before running another function
-          if (resp.data[1] != "Not Unique") {
-            VV.Form.DoAjaxFormSave();
-          }
+          VV.Form.DoAjaxFormSave();
         } else if (wsSentErrorResponse) {
           message = "An error was encountered. " + resp.data[1];
         } else {
