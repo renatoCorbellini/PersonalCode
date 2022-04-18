@@ -11,7 +11,7 @@ module.exports.getCredentials = function () {
   return options;
 };
 
-module.exports.main = function (ffCollection, vvClient, response) {
+module.exports.main = async function (ffCollection, vvClient, response) {
   /*Script Name:   LibFormVerifyUniqueRecord
      Customer:      VisualVault library function.
      Purpose:       This process verifies that a form record is unique based on the passed in query criteria.  Library function.
@@ -25,113 +25,164 @@ module.exports.main = function (ffCollection, vvClient, response) {
                     statusMessage: A short descriptive message
 
      Date of Dev:   11/17/2017
-     Last Rev Date: 05/10/2019
+     Last Rev Date: 07/06/2021
 
      Revision Notes:
      11/17/2017 - Austin Noel: Initial creation of the business process.
      12/05/2017 - Jason Hatch: Needed a revision id returning when on record is found that is not matched.
      05/10/2019 - Kendra Austin: Update so that passed in 'formId' parameter can be either form ID or revision ID.
+     07/06/2021 - Emanuel Jofré: Promises transpiled to async/await.
+    */
 
-     */
-
+  // Logs the execution start time of the script
   logger.info("Start of the process LibFormVerifyUniqueRecord at " + Date());
-  var Q = require("q");
 
-  //Initialization of the return object
-  var returnObj = {};
+  // Initialization of the return object
+  let respWebService = {};
+  let outputCollection = [];
 
-  //Initialization of the script variables
-  var templateId = null;
-  var query = null;
-  var formId = null;
+  // Initialization of a temporal array to store errors
+  let errorLog = [];
 
-  //Function to query the form records for matching data instances
-  var searchForms = function () {
+  /********************
+   * Helper Functions *
+   ********************/
+
+  async function searchForms(query, templateId) {
     logger.info("Querying form records");
 
-    var formParams = {};
-    formParams.q = query.value;
+    // Searchs forms using the provided query
+    const formParams = { q: query };
+    const resp = await vvClient.forms.getForms(formParams, templateId);
 
-    return vvClient.forms.getForms(formParams, templateId.value);
-  };
+    return resp;
+  }
 
-  var result = Q.resolve();
+  /**
+   * Verifies existence of field and value and returns value of field.
+   * errorLog array must be created before calling this function.
+   */
+  function getFieldValueByName(fieldName, isFieldRequired) {
+    // If isFieldRequired parameter is not passed in, the field is required
+    let isRequired = isFieldRequired ? isFieldRequired : true;
+    let fieldObj = {};
+    let fieldValue = null;
+    let resp = null;
 
-  return result
-    .then(function () {
-      logger.info("Extracting and validating passed in fields");
-
-      //Extract and validate the passed in parameters
-      templateId = ffCollection.getFormFieldByName("templateId");
-      query = ffCollection.getFormFieldByName("query");
-      formId = ffCollection.getFormFieldByName("formId");
-
-      if (!templateId || !templateId.value) {
-        throw new Error(
-          "The 'templateId' parameter was not supplied or had an invalid value"
-        );
-      } else if (!query || !query.value) {
-        throw new Error(
-          "The 'query' parameter was not supplied or had an invalid value"
-        );
-      } else if (!formId || !formId.value) {
-        throw new Error(
-          "The 'formId' parameter was not supplied or had an invalid value"
-        );
-      }
-
-      //Fetch the form records
-      return searchForms();
-    })
-    .then(function (formsResp) {
-      var formData = JSON.parse(formsResp);
-
-      if (formData.meta.status == "200") {
-        if (formData.data.length > 1) {
-          //Multiple records returned - Not Unique
-          returnObj.status = "Not Unique";
-          returnObj.statusMessage = "The record is NOT unique";
-        } else if (formData.data.length === 0) {
-          //No records returned - Unique
-          returnObj.status = "Unique";
-          returnObj.statusMessage = "The record is unique";
-        } else {
-          //One record returned. Check to see if it matches the passed in formId
-          var form = formData.data[0];
-          if (
-            form.instanceName === formId.value ||
-            form.revisionId === formId.value
-          ) {
-            //Record matches the passed in formId - Unique Matched
-            returnObj.status = "Unique Matched";
-            returnObj.statusMessage = "The record is unique";
-            returnObj.revisionId = form.revisionId;
-          } else {
-            //Record does not match the passed in formId - Not Unique
-            returnObj.status = "Not Unique";
-            returnObj.statusMessage = "The record is NOT unique";
-            returnObj.revisionId = form.revisionId;
-          }
+    try {
+      fieldObj = ffCollection.getFormFieldByName(fieldName);
+      if (fieldObj) {
+        fieldValue = fieldObj.value ? fieldObj.value.trim() : null;
+        if (fieldValue) {
+          resp = fieldValue;
+        } else if (isRequired) {
+          errorLog.push(
+            `A value property for the field '${fieldName}' was not found or is empty`
+          );
         }
       } else {
-        throw new Error("Call to query existing forms returned with an error.");
+        errorLog.push(`The field '${fieldName}' was not found`);
       }
-    })
-    .then(function () {
-      //Return the response object
-      return response.json(returnObj);
-    })
-    .catch(function (err) {
-      logger.info(JSON.stringify(err));
+    } catch (error) {
+      errorLog.push(error);
+    }
+    return resp;
+  }
 
-      returnObj.status = "Error";
+  /****************
+   * Main Process *
+   ****************/
 
-      if (err && err.message) {
-        returnObj.statusMessage = err.message;
+  try {
+    logger.info("Extracting and validating passed in fields");
+
+    // Validates and gets the passed in parameters
+    const templateId = getFieldValueByName("templateId");
+    const query = getFieldValueByName("query");
+    const formId = getFieldValueByName("formId");
+
+    if (templateId && query && formId) {
+      // Gets the forms
+      const respSearchForms = await searchForms(query, templateId);
+
+      // Processes the response from searchForms()
+      const formData = JSON.parse(respSearchForms);
+
+      if (formData.meta) {
+        if (formData.meta.status === 200) {
+          if (formData.data) {
+            const moreThanOneRecord = formData.data.length > 1 ? true : false;
+            const noRecords = formData.data.length === 0 ? true : false;
+            const oneRecord = formData.data.length === 1 ? true : false;
+
+            if (moreThanOneRecord) {
+              respWebService.status = "Not Unique";
+              respWebService.statusMessage = "The record is NOT unique";
+            } else if (noRecords) {
+              respWebService.status = "Unique";
+              respWebService.statusMessage = "The record is unique";
+            } else if (oneRecord) {
+              const record = formData.data[0];
+              const recordNameEqualsFormId =
+                record.instanceName === formId ? true : false;
+              const recordRevisionIdEqualsFormId =
+                record.revisionId === formId ? true : false;
+
+              if (recordNameEqualsFormId || recordRevisionIdEqualsFormId) {
+                respWebService.status = "Unique Matched";
+                respWebService.statusMessage = "The record is unique";
+                respWebService.revisionId = record.revisionId;
+              } else {
+                respWebService.status = "Not Unique";
+                respWebService.statusMessage = "The record is NOT unique";
+                respWebService.revisionId = record.revisionId;
+              }
+            }
+          } else {
+            throw new Error("The query returned no data");
+          }
+        } else {
+          throw new Error(
+            "Call to query existing forms returned with an error"
+          );
+        }
       } else {
-        returnObj.statusMessage = "An error has occurred";
+        throw new Error(
+          "Search form error. Check query format, template id, and credentials."
+        );
       }
+    } else {
+      // Builds a string with every error occurred obtaining field values
+      throw new Error(errorLog.join("; "));
+    }
 
-      return response.json(returnObj);
-    });
+    outputCollection[0] = respWebService.status;
+    outputCollection[1] = respWebService.statusMessage;
+    outputCollection[2] = []; //Extra Data
+
+    respWebService.meta = {
+      method: "POST",
+      status: 200,
+      statusMsg: "OK",
+    };
+    respWebService.data = outputCollection;
+    return respWebService;
+  } catch (error) {
+    respWebService.status = "Error";
+    respWebService.statusMessage = error.message ? error.message : error;
+
+    respWebService.meta = {
+      errors: error.message,
+      method: "POST",
+      status: 400,
+      statusMsg: "ERROR",
+    };
+  } finally {
+    /*
+        This code should be added in the finally section or wherever is a response.json call
+        This code should replace the statement: return response.json(200).
+    */
+    return respWebService;
+    //response.json(200, outputCollection);
+  }
 };
