@@ -13,15 +13,18 @@
 
 
     Date of Dev:   06/01/2017
-    Last Rev Date: 04/05/2022
+    Last Rev Date: 04/19/2022
 
     Revision Notes:
     06/01/2017 - Jason Hatch: Initial creation of the business process. 
     04/05/2022 - Renato Corbellini: Updated variable names to more intuitive ones.
                                     Added checking on the passednumDays parameter.
                                     Added try-catch clause to deal with parsing errors.
+    04/19/2022 - Renato Corbellini: Added checking of dDate.
 
-    Considerations: 
+    Considerations:
+     Doens't include validation for different formats of dates
+       It calculates in these formats MM/DD/YYYY, M/D/YYYY/ M/DD/YYYY or MM/D/YYYY
      Doesn't take into account holidays
      Counts end day, does not count start day
      This is designed to work with the local time of the customers computer
@@ -35,9 +38,6 @@ try {
   }
 
   // Check if the date entered has the right lenght (6, 7 or 8 digits and 2 separators "/")
-  /* if (!(dDate.length >= 8 || dDate.length <= 10)) {
-    throw new Error(`The date entered is not valid.`);
-  } */
   if (dDate.length < 8 || dDate.length > 10) {
     throw new Error("The date entered is not valid.");
   }
@@ -60,12 +60,11 @@ try {
   // Make copies we can normalize without changing passed in parameters
   let passedDate = new Date(dDate);
 
-  // getTime gets the number of miliseconds since the ECMAScript epoch (January 1, 1970, UTC)
   let start = new Date(passedDate.getTime());
   let daysToAdd = new Number(passednumDays);
 
   // Check if the date entered is valid
-  if (isNaN(start)) throw new Error(`The date entered is not valid.`);
+  if (isNaN(start)) throw new Error(`The date is not valid.`);
 
   // Normalize start to beginning of the day
   start.setHours(0, 0, 0, 0);
@@ -76,7 +75,7 @@ try {
   // (Sunday, Monday, Tuesday, ...)
   let currentDay;
 
-  // Add one day to exclude starting day in the final result
+  // Exclude starting day in the final result
   current.setDate(current.getDate() + 1);
 
   while (daysToAdd != 0) {
