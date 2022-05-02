@@ -23,11 +23,11 @@
     04/19/2022 - Renato Corbellini: Added checking of dDate.
 
     Considerations:
-     Doens't include validation for different formats of dates
-       It calculates in these formats MM/DD/YYYY, M/D/YYYY/ M/DD/YYYY or MM/D/YYYY
+     Doesn't include validation for different date formats
+       It calculates in these formats MM/DD/YYYY, M/D/YYYY, M/DD/YYYY or MM/D/YYYY
      Doesn't take into account holidays
      Counts end day, does not count start day
-     This is designed to work with the local time of the customers computer
+     This is designed to work with the local time of the customer's computer
      If the end date is a Saturday or Sunday, it returns the next business day (Monday)
 */
 
@@ -37,17 +37,15 @@ try {
     throw new Error(`The date entered is not valid.`);
   }
 
-  // Check if the date entered has the right lenght (6, 7 or 8 digits and 2 separators "/")
+  // Check if the date entered has the right length (6, 7 or 8 digits and 2 separators "/")
   if (dDate.length < 8 || dDate.length > 10) {
     throw new Error("The date entered is not valid.");
   }
 
-  // Check if passednumDays contains only numbers
   if (VV.Form.Global.CentralValidation(passednumDays, "NumberOnly") == false) {
     throw new Error(`The number of business days to add is not valid.`);
   }
 
-  // Check if the number of days to add is positive
   if (passednumDays <= 0) {
     throw new Error(
       `The number of business days to add must be greater than 0.`
@@ -71,7 +69,7 @@ try {
 
   let current = new Date(start);
 
-  // Simbolizes the day of the week the variable current is in
+  // Represents the day of the week the variable 'current' is in
   // (Sunday, Monday, Tuesday, ...)
   let currentDay;
 
@@ -79,17 +77,15 @@ try {
   current.setDate(current.getDate() + 1);
 
   while (daysToAdd != 0) {
-    // Get the day of the week (0 represents Sunday, ..., 6 represents Saturday)
+    // Get the day of the week (0 is Sunday, ..., 6 is Saturday)
     currentDay = current.getDay();
 
     if (currentDay >= 1 && currentDay <= 5) {
       // The current day is a business day, add a day
       start.setDate(start.getDate() + 1);
-      // Decrease the variable daysToAdd in one unit
       daysToAdd--;
     } else {
-      // The current day is a Sautrday or Sunday, we add a day
-      // but we don't decrease the variable daysToAdd
+      // The current day's a Saturday or Sunday
       start.setDate(start.getDate() + 1);
     }
     // Advance one day
