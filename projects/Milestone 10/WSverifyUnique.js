@@ -117,7 +117,7 @@ module.exports.main = async function (ffCollection, vvClient, response) {
     /****************
      BEGIN ASYNC CODE
     *****************/
-    // STEP 1 - Call VerifyUniqueRecord to determine whether the template record is unique per the passed in information.
+    // STEP 1 - Call VerifyUniqueRecord to determine whether the template record is unique for the passed in information.
     // Query formatted variables
 
     let uniqueRecordArr = [
