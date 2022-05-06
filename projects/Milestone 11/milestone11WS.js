@@ -230,20 +230,10 @@ module.exports.main = async function (vvClient, response, token) {
   try {
     // 1.GET THE VALUES OF THE FIELDS
 
-    //const formID = getFieldValueByName("Form ID");
     const country = "United States of America";
     const state = "Florida";
 
-    // 2.CHECKS IF THE REQUIRED PARAMETERS ARE PRESENT
-
-    // if (!formID) {
-    //   // It could be more than one error, so we need to send all of them in one response
-    //   throw new Error(errorLog.join("; "));
-    // }
-
-    // GET ALL THE FORM RECORDS THAT HAVE THE SAME COUNTRY AND STATE
-    // shortDescription = `Get form ${formID}`;
-    shortDescription = ``;
+    // 2.GET ALL THE FORM RECORDS THAT HAVE THE SAME COUNTRY AND STATE
 
     const getFormsParams = {
       q: `[Country] eq '${country}' AND [State] eq '${state}'`,
@@ -257,9 +247,30 @@ module.exports.main = async function (vvClient, response, token) {
       .then((res) => checkDataPropertyExists(res, shortDescription))
       .then((res) => checkDataIsNotEmpty(res, shortDescription));
 
-    //
+    //3. CYLCE THROUGH EVERY RECORD FOUND
 
-    // SEND THE SUCCESS RESPONSE MESSAGE
+    getFormsRes.data.forEach(async (form) => {
+      const formGUID = form["revisionId"];
+      shortDescription = `Update form ${formGUID}`;
+
+      //4. BUILD THE DATA ARRAY TO BE UPDATED
+
+      const formFieldsToUpdate = {
+        "First Name": "Pedro",
+        "Last Name": "Gonzales",
+        Address: "New York 992",
+      };
+
+      //5. UPDATE THE RECORD
+      await vvClient.forms
+        .postFormsRevision(null, formFieldsToUpdate, someTemplateName, formGUID)
+        .then((res) => parseRes(res))
+        .then((res) => checkMetaAndStatus(res, shortDescription))
+        .then((res) => checkDataPropertyExists(res, shortDescription))
+        .then((res) => checkDataIsNotEmpty(res, shortDescription));
+    });
+
+    //6. SEND THE SUCCESS RESPONSE MESSAGE
 
     responseMessage = "Success";
 
