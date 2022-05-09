@@ -62,48 +62,6 @@ module.exports.main = async function (vvClient, response, token) {
      Helper Functions
     ******************/
 
-  function getFieldValueByName(fieldName, isRequired = true) {
-    /*
-        Check if a field was passed in the request and get its value
-        Parameters:
-            fieldName: The name of the field to be checked
-            isRequired: If the field is required or not
-        */
-
-    let resp = null;
-
-    try {
-      // Tries to get the field from the passed in arguments
-      const field = ffCollection.getFormFieldByName(fieldName);
-
-      if (!field && isRequired) {
-        throw new Error(`The field '${fieldName}' was not found.`);
-      } else if (field) {
-        // If the field was found, get its value
-        let fieldValue = field.value ? field.value : null;
-
-        if (typeof fieldValue === "string") {
-          // Remove any leading or trailing spaces
-          fieldValue.trim();
-        }
-
-        if (fieldValue) {
-          // Sets the field value to the response
-          resp = fieldValue;
-        } else if (isRequired) {
-          // If the field is required and has no value, throw an error
-          throw new Error(
-            `The value property for the field '${fieldName}' was not found or is empty.`
-          );
-        }
-      }
-    } catch (error) {
-      // If an error was thrown, add it to the error log
-      errorLog.push(error);
-    }
-    return resp;
-  }
-
   function parseRes(vvClientRes) {
     /*
         Generic JSON parsing function
@@ -249,25 +207,35 @@ module.exports.main = async function (vvClient, response, token) {
 
     //3. CYLCE THROUGH EVERY RECORD FOUND
 
+    let errorLog = [];
     getFormsRes.data.forEach(async (form) => {
-      const formGUID = form["revisionId"];
-      shortDescription = `Update form ${formGUID}`;
+      try {
+        const formGUID = form["revisionId"];
+        shortDescription = `Update form ${formGUID}`;
 
-      //4. BUILD THE DATA ARRAY TO BE UPDATED
+        //4. BUILD THE DATA ARRAY TO BE UPDATED
 
-      const formFieldsToUpdate = {
-        "First Name": "Pedro",
-        "Last Name": "Gonzales",
-        Address: "New York 992",
-      };
+        const formFieldsToUpdate = {
+          "First Name": "JOHN",
+          "Last Name": "SMITH",
+          Address: "18 DE JULIO 778",
+        };
 
-      //5. UPDATE THE RECORD
-      await vvClient.forms
-        .postFormsRevision(null, formFieldsToUpdate, someTemplateName, formGUID)
-        .then((res) => parseRes(res))
-        .then((res) => checkMetaAndStatus(res, shortDescription))
-        .then((res) => checkDataPropertyExists(res, shortDescription))
-        .then((res) => checkDataIsNotEmpty(res, shortDescription));
+        //5. UPDATE THE RECORD
+        await vvClient.forms
+          .postFormRevision(
+            null,
+            formFieldsToUpdate,
+            someTemplateName,
+            formGUID
+          )
+          .then((res) => parseRes(res))
+          .then((res) => checkMetaAndStatus(res, shortDescription))
+          .then((res) => checkDataPropertyExists(res, shortDescription))
+          .then((res) => checkDataIsNotEmpty(res, shortDescription));
+      } catch (error) {
+        errorLog.push(error);
+      }
     });
 
     //6. SEND THE SUCCESS RESPONSE MESSAGE
