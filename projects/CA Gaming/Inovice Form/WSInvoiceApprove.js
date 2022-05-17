@@ -1,27 +1,27 @@
 var vvEntities = require("../VVRestApi");
 var logger = require("../log");
 
-// module.exports.getCredentials = function () {
-//   var options = {};
-//   options.customerAlias = "CAGaming";
-//   options.databaseAlias = "Default";
-//   options.userId = "ca.admin";
-//   options.password = "Au3rs0ft1";
-//   options.clientId = "4426f41a-0e49-4df7-b6ac-55df031605fd";
-//   options.clientSecret = "kZsf9b88r77DOBDPVvVGS7q6Plez3v43VeZye5OLxGQ=";
-//   return options;
-// };
-
 module.exports.getCredentials = function () {
   var options = {};
   options.customerAlias = "CAGaming";
   options.databaseAlias = "Default";
-  options.userId = "renato.corbellini@onetree.com";
-  options.password = "M4rz0.2022";
-  options.clientId = "43d9f3dc-af49-48f2-8b77-db7377d21b5c";
-  options.clientSecret = "F6YoDeB72Up7bYbstkoFiFUSvMk7dH5E0XOmODgnLbg=";
+  options.userId = "ca.admin";
+  options.password = "Au3rs0ft1";
+  options.clientId = "4426f41a-0e49-4df7-b6ac-55df031605fd";
+  options.clientSecret = "kZsf9b88r77DOBDPVvVGS7q6Plez3v43VeZye5OLxGQ=";
   return options;
 };
+
+// module.exports.getCredentials = function () {
+//   var options = {};
+//   options.customerAlias = "CAGaming";
+//   options.databaseAlias = "Default";
+//   options.userId = "renato.corbellini@onetree.com";
+//   options.password = "M4rz0.2022";
+//   options.clientId = "43d9f3dc-af49-48f2-8b77-db7377d21b5c";
+//   options.clientSecret = "F6YoDeB72Up7bYbstkoFiFUSvMk7dH5E0XOmODgnLbg=";
+//   return options;
+// };
 
 module.exports.main = async function (ffCollection, vvClient, response) {
   /*Script Name:   InvoiceApprove
@@ -38,6 +38,7 @@ module.exports.main = async function (ffCollection, vvClient, response) {
       07/16/2014 - Jason: Add logic to include group treatment forms.
       08/04/2014 - Jason: Add logic to handle supervisor billing.
       09/16/2014 - Jason: Updated form template variables to be standard across all processes.
+      05/12/2022 - Renato Corbellini: Added helper functions parseRes, getFeeValue, checkMetaAndStatus and checkDataPropertyExists used in the getCustomQueryResultByName to bring the active fees from VV instead of hard coding them.
 
     */
 
@@ -143,6 +144,7 @@ module.exports.main = async function (ffCollection, vvClient, response) {
     .then((res) => checkMetaAndStatus(res, shortDescription))
     .then((res) => checkDataPropertyExists(res, shortDescription));
 
+  //Following are variables that determine the value for each item included in the invoice.
   var basePOValue = getFeeValue(customQueryResp, "Base PO Value"); //Keeps track of the base value of any starting PO limit.
   var intakeValue = getFeeValue(customQueryResp, "Intake Value"); //Keeps track of the amount paid per intake questionnaires form.
   var intreatmentValue = getFeeValue(customQueryResp, "Intreatment Value"); //Keeps track of the amount paid for intreatment questionnaires.
