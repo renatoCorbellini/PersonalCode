@@ -39,6 +39,7 @@ module.exports.main = async function (ffCollection, vvClient, response) {
       08/04/2014 - Jason: Add logic to handle supervisor billing.
       09/16/2014 - Jason: Updated form template variables to be standard across all processes.
       05/12/2022 - Renato Corbellini: Added helper functions parseRes, getFeeValue, checkMetaAndStatus and checkDataPropertyExists used in the getCustomQueryResultByName to bring the active fees from VV instead of hard coding them.
+      05/25/2022 - Renato Corbellini: Defined variables needed for execution roupScreeningBillable and supervisorBillable
 
     */
 
@@ -153,6 +154,8 @@ module.exports.main = async function (ffCollection, vvClient, response) {
     customQueryResp,
     "Group Screening Value"
   ); //Keeps track of the amount paid for conducting group screening if groupScreeningBillable = 1.
+  var groupScreeningBillable = 1; //Determines if screening should be billable or not.  0 = no, 1 = yes.
+  var supervisorBillable = 1; //Determines if supervisor logs should be billable or not.  0 = no, 1 = yes.
   var groupSessionValue = getFeeValue(customQueryResp, "Group Session Value"); //Keeps track of the amount paid for each participant in a group session.
   var groupEOTValue = getFeeValue(customQueryResp, "Group EOT Value"); //Keeps track of the amount paid for conducting a group eot.
   var supervisorLogValue = getFeeValue(customQueryResp, "Supervisor Log Value"); //Keeps track of the amount paid for providing supervisor services.
@@ -462,7 +465,7 @@ module.exports.main = async function (ffCollection, vvClient, response) {
             //Records returned when status = 200 and length says the number of records returned.
             logger.info("Supervisor Log with Invoice found.");
             for (var i = 0; i < formSupervisorIncData.data.length; i++) {
-              var loadInvoiceArray = {}; //used to load the array.
+              loadInvoiceArray = {}; //used to load the array.
               loadInvoiceArray.FormType = "Supervisor"; //Load Formtype part of the object.  Group is for this type of form.
               loadInvoiceArray.clienttype = "NA"; //Loading the client type.
               loadInvoiceArray.visitdate =

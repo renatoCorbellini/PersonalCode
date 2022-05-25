@@ -145,7 +145,7 @@ module.exports.main = function (vvClient, response) {
   var intakeValue = getFeeValue(customQueryResp, "Intake Value"); //Keeps track of the value for the intake questionnaire forms.
   var intreatmentValue = getFeeValue(customQueryResp, "Intreatment Value"); //Keeps track of the value of an in-treatment type questionnaire.
   var endoftreatValue = getFeeValue(customQueryResp, "End of Treatment Value"); //Keeps track of the value of an end of treatment type questionnaire.
-  var poLimitThreshold = getFeeValue(customQueryResp, "Base PO Value"); //Keeps track of the PO Limit threshold when providers can submit a request for addl services.
+  var poLimitThreshold = 1000; //Keeps track of the PO Limit threshold when providers can submit a request for addl services.
   var groupScreeningValue = getFeeValue(
     customQueryResp,
     "Group Screening Value"
