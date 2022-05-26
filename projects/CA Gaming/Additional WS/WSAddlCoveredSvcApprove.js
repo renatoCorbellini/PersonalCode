@@ -17,7 +17,7 @@ module.exports.main = function (ffCollection, vvClient, response) {
       Customer:      California Office of Problem Gambling, Department of Public Health
       Purpose:       The purpose of this script is to gather information and perform actions to support approval of a Request for Additional Services form.
       Date of Dev:   08/2013
-      Last Rev Date: 10/06/2018
+      Last Rev Date: 05/26/2022
 
       Revision Notes:
       08/2013 - At this time we are writing the code in nodejs to complete the same functions as is currently being
@@ -31,21 +31,128 @@ module.exports.main = function (ffCollection, vvClient, response) {
       05/05/2016 - Jason: Not calculating fully for a provider the right usage.  Intake date for client query restricting inclusion.  Changing calculation of begin date to allow more inclusion.
       10/06/2018 - Kendra: Updated TQF query to account for new Questionnaire Type format (30 Day Follow-Up instead of Follow-up 30 Day)
       04/28/2020 - Morgan: Update invoiceablePrograms to include Problem Gambling Telephone Intervention
+      05/26/2022 - Renato Corbellini: Added helper functions parseRes, getFeeValue, checkMetaAndStatus and checkDataPropertyExists used in the getCustomQueryResultByName to bring the active fees from VV instead of hard coding them.
     */
 
-  var basePOValue = 5000; //Keeps track of the base value of any starting PO limit.
-  var intakeValue = 200;
-  var intreatmentValue = 100;
-  var endoftreatValue = 100;
-  var poLimitThreshold = 1000;
+  /*****************
+     Helper Functions
+    ******************/
+
+  function parseRes(vvClientRes) {
+    /*
+        Generic JSON parsing function
+        Parameters:
+                vvClientRes: JSON response from a vvClient API method
+        */
+    try {
+      // Parses the response in case it's a JSON string
+      const jsObject = JSON.parse(vvClientRes);
+      // Handle non-exception-throwing cases:
+      if (jsObject && typeof jsObject === "object") {
+        vvClientRes = jsObject;
+      }
+    } catch (e) {
+      // If an error ocurrs, it's because the resp is already a JS object and doesn't need to be parsed
+    }
+    return vvClientRes;
+  }
+
+  function getFeeValue(feeArray, feeName) {
+    try {
+      const feeFound = feeArray.data.find((fee) => fee["fee Name"] == feeName);
+      return feeFound["fee Value"];
+    } catch (e) {
+      // If an error ocurrs, it's because it the fee is not present in the active fees query
+    }
+  }
+
+  function checkMetaAndStatus(
+    vvClientRes,
+    shortDescription,
+    ignoreStatusCode = 999
+  ) {
+    /*
+        Checks that the meta property of a vvCliente API response object has the expected status code
+        Parameters:
+                vvClientRes: Parsed response object from a vvClient API method
+                shortDescription: A string with a short description of the process
+                ignoreStatusCode: An integer status code for which no error should be thrown. If you're using checkData(), make sure to pass the same param as well.
+        */
+    if (!vvClientRes.meta) {
+      throw new Error(
+        `${shortDescription} error. No meta object found in response. Check method call parameters and credentials.`
+      );
+    }
+
+    const status = vvClientRes.meta.status;
+
+    // If the status is not the expected one, throw an error
+    if (status != 200 && status != 201 && status != ignoreStatusCode) {
+      const errorReason =
+        vvClientRes.meta.errors && vvClientRes.meta.errors[0]
+          ? vvClientRes.meta.errors[0].reason
+          : "unspecified";
+      throw new Error(
+        `${shortDescription} error. Status: ${vvClientRes.meta.status}. Reason: ${errorReason}`
+      );
+    }
+    return vvClientRes;
+  }
+
+  function checkDataPropertyExists(
+    vvClientRes,
+    shortDescription,
+    ignoreStatusCode = 999
+  ) {
+    /*
+        Checks that the data property of a vvCliente API response object exists 
+        Parameters:
+                res: Parsed response object from the API call
+                shortDescription: A string with a short description of the process
+                ignoreStatusCode: An integer status code for which no error should be thrown. If you're using checkMeta(), make sure to pass the same param as well.
+        */
+    const status = vvClientRes.meta.status;
+
+    if (status != ignoreStatusCode) {
+      // If the data property doesn't exist, throw an error
+      if (!vvClientRes.data) {
+        throw new Error(
+          `${shortDescription} data property was not present. Please, check parameters and syntax. Status: ${status}.`
+        );
+      }
+    }
+
+    return vvClientRes;
+  }
+
+  // GET ALL THE FEES THAT ARE ACTIVE (CURRENT DATE >= EFFECTIVITY START DATE AND CURRENT DATE <= EFECTIVITY END DATE)
+
+  const queryName = "zWebSvc Active Fees";
+  let shortDescription = "Custom Query trying to get active fees";
+
+  const customQueryResp = await vvClient.customQuery
+    .getCustomQueryResultsByName(queryName)
+    .then((res) => parseRes(res))
+    .then((res) => checkMetaAndStatus(res, shortDescription))
+    .then((res) => checkDataPropertyExists(res, shortDescription));
+
+  //Following are variables that determine the value for each item included in the invoice.
+  var basePOValue = getFeeValue(customQueryResp, "Base PO Value"); //Keeps track of the base value of any starting PO limit.
+  var intakeValue = getFeeValue(customQueryResp, "Intake Value"); //Keeps track of the value for the intake questionnaire forms.
+  var intreatmentValue = getFeeValue(customQueryResp, "Intreatment Value"); //Keeps track of the value of an in-treatment type questionnaire.
+  var endoftreatValue = getFeeValue(customQueryResp, "End of Treatment Value"); //Keeps track of the value of an end of treatment type questionnaire.
+  var poLimitThreshold = 1000; //Keeps track of the PO Limit threshold when providers can submit a request for addl services.
 
   var groupScreeningBillable = 1; //Determines if screening should be billable or not.  0 = no, 1 = yes.
-  var groupScreeningValue = 50; //Keeps track of the amount paid for conducting group screening if groupScreeningBillable = 1.
-  var groupSessionValue = 30; //Keeps track of the amount paid for each participant in a group session.
-  var groupEOTValue = 50; //Keeps track of the amount paid for conducting a group eot.
+  var groupScreeningValue = getFeeValue(
+    customQueryResp,
+    "Group Screening Value"
+  ); //Keeps track of the amount paid for conducting group screening if groupScreeningBillable = 1.
+  var groupSessionValue = getFeeValue(customQueryResp, "Group Session Value"); //Keeps track of the amount paid for each participant in a group session.
+  var groupEOTValue = getFeeValue(customQueryResp, "Group EOT Value"); //Keeps track of the amount paid for conducting a group eot.
 
   var supervisorBillable = 1; //Determines if supervisor logs should be billable or not.  0 = no, 1 = yes.
-  var supervisorLogValue = 100; //Keeps track of the amount paid for conducting supervisor activities.
+  var supervisorLogValue = getFeeValue(customQueryResp, "Supervisor Log Value"); //Keeps track of the amount paid for providing supervisor services.
 
   var invoiceablePrograms = []; //Array used to keep track of the list of billable type cases or intake forms.
 

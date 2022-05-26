@@ -17,7 +17,7 @@ module.exports.main = function (ffCollection, vvClient, response) {
       Customer:      California Office of Problem Gambling, Department of Public Health
       Purpose:       The purpose of this script is to gather information and perform actions to support submittal of a Request for Additional Services form.
       Date of Dev:   08/2013
-      Last Rev Date: 10/06/2018
+      Last Rev Date: 05/25/2022
 
       Revision Notes:
       08/2013 - At this time we are writing the code in nodejs to complete the same functions as is currently being
