@@ -12,7 +12,7 @@ module.exports.getCredentials = function () {
   return options;
 };
 
-module.exports.main = function (ffCollection, vvClient, response) {
+module.exports.main = async function (ffCollection, vvClient, response) {
   /*Script Name:   AddlCoveredSvcApprove
       Customer:      California Office of Problem Gambling, Department of Public Health
       Purpose:       The purpose of this script is to gather information and perform actions to support approval of a Request for Additional Services form.

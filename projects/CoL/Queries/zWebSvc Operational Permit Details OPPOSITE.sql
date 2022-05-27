@@ -37,6 +37,7 @@
 -- FROM [Contact Record]
 -- WHERE [Contact Record].[Status] = 'Inactive'
 -- ORDER BY [Contact Record].[Status] DESC
+-- Query used to get all the records that are not included in the original query
 SELECT
     [Contact Record].[Record ID]
 FROM
