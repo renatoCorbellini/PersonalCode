@@ -3,7 +3,8 @@ SELECT
     [Contact Record].[VVModifyDate],
     [Contact Record].[Status],
     [Designee].[Status],
-    [Designee].[Type Facility]
+    [Designee].[Type Facility],
+    [Designee].[Contact ID]
 FROM
     [OpPerm Operational Permit]
     INNER JOIN [Designee] ON [Designee].[Operational Permit ID] = [OpPerm Operational Permit].[OperationalPermitID]

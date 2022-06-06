@@ -1,4 +1,3 @@
-var vvEntities = require("../VVRestApi");
 var logger = require("../log");
 
 module.exports.getCredentials = function () {
@@ -11,17 +10,6 @@ module.exports.getCredentials = function () {
   options.clientSecret = "kZsf9b88r77DOBDPVvVGS7q6Plez3v43VeZye5OLxGQ=";
   return options;
 };
-
-// module.exports.getCredentials = function () {
-//   var options = {};
-//   options.customerAlias = "CAGaming";
-//   options.databaseAlias = "Default";
-//   options.userId = "renato.corbellini@onetree.com";
-//   options.password = "M4rz0.2022";
-//   options.clientId = "43d9f3dc-af49-48f2-8b77-db7377d21b5c";
-//   options.clientSecret = "F6YoDeB72Up7bYbstkoFiFUSvMk7dH5E0XOmODgnLbg=";
-//   return options;
-// };
 
 module.exports.main = async function (ffCollection, vvClient, response) {
   /*Script Name:   InvoiceGenerate
@@ -50,7 +38,7 @@ module.exports.main = async function (ffCollection, vvClient, response) {
         09/06/2018 - Nikola: Added PGTI as an invoiceable program.
         10/01/2018 - Kendra: 2018 Codebook project. Update Questionnaire Type measures to reflect numeric values.
         10/12/2018 - Kendra: 2018 Codebook Project. Updated group in-treatment sessions query not to include forms that have not been fully submitted.
-        05/12/2022 - Renato Corbellini: Added helper functions parseRes, getFeeValue, checkMetaAndStatus and checkDataPropertyExists used in the getCustomQueryResultByName to bring the active fees from VV instead of hard coding them.
+        05/12/2022 - Renato Corbellini: Added helper functions parseRes, getFeeValue, checkMetaAndStatus and checkDataPropertyExists (Helper Functions Section) used in the getCustomQueryResultByName to bring the active fees from VV instead of hard coding them. Assigned the corresponding value for each item included in the invoice.
         */
 
   /*****************

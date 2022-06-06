@@ -1,4 +1,3 @@
-var vvEntities = require("../VVRestApi");
 var logger = require("../log");
 
 module.exports.getCredentials = function () {
@@ -35,7 +34,7 @@ module.exports.main = function (vvClient, response) {
      10/08/2015 - Jason: Update query to get list of billable client intake forms within a specific range of when the intake form was modified.  When loading caseID into the billable array, the value was CasId so it was not loading any case ids.
      10/06/2018 - Kendra: 2018 Codebook Project. Updated TQF query to account for new Questionnaire Type format (30 Day Follow-Up instead of Follow-up 30 Day)
      04/28/2020 - Morgan: Add billableTypes.push to include Problem Gambling Telephone Intervention
-     05/12/2022 - Renato Corbellini: Added helper functions parseRes, getFeeValue, checkMetaAndStatus and checkDataPropertyExists used in the getCustomQueryResultByName to bring the active fees from VV instead of hard coding them.
+     05/12/2022 - Renato Corbellini: Added helper functions parseRes, getFeeValue, checkMetaAndStatus and checkDataPropertyExists (Helper Functions Section) used in the getCustomQueryResultByName to bring the active fees from VV instead of hard coding them. Assigned the corresponding value for each item included in the invoice.
      */
 
   /*****************
