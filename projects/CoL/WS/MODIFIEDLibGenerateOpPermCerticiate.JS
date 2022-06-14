@@ -116,36 +116,34 @@ module.exports.main = async function (ffCollection, vvClient, response) {
 
     async function expireCertificates(certificatesArray) {
       try {
-        let res = await Promise.all(
+        let postFormRes = await Promise.all(
           certificatesArray.map(async (certificate) => {
             const certificateToExpireGuid = certificate["revisionId"];
-            let shortDescription = `Update form ${certificateToExpireGuid}`;
-
             const formFieldsToUpdate = {
               Status: "Expired",
             };
-
-            let postFormResp = vvClient.forms.postFormRevision(
+            return vvClient.forms.postFormRevision(
               null,
               formFieldsToUpdate,
               certificateTemplateID,
               certificateToExpireGuid
             );
-
-            if (postFormResp.meta.status !== 201) {
-              throw new Error(
-                `An error was encountered when attempting to update the ${certificateToExpireGuid} form. ${
-                  postFormResp.hasOwnProperty("meta")
-                    ? postFormResp.meta.statusMsg
-                    : postFormResp.message
-                }`
-              );
-            }
-
-            return postFormResp;
           })
         );
-        return res;
+        postFormRes.map((response) => {
+          if (!response.meta) {
+            throw new Error("");
+          }
+          if (response.meta.status !== 201) {
+            throw new Error(
+              `An error was encountered when attempting to update the ${certificateToExpireGuid} form. ${
+                postFormResp.hasOwnProperty("meta")
+                  ? postFormResp.meta.statusMsg
+                  : postFormResp.message
+              }`
+            );
+          }
+        });
       } catch (error) {
         errorLog.push(error);
       }
@@ -185,8 +183,9 @@ module.exports.main = async function (ffCollection, vvClient, response) {
           // STEP 3 - If this is a renewal get the most recent certificate.
           if (newOrRenewal === "Renewal") {
             let queryCertificateParams = {
-              q: `[Operational Permit ID] eq '${operationalPermitID}'`,
-              fields: "instanceName, revisionId, Date Expires, Status",
+              q: `[Operational Permit ID] eq '${certificateToGen["Permit ID"]}'`,
+              fields:
+                "instanceName, revisionId, Date Expires, Status, Certificate Year",
             };
 
             let getCertificateFormsResp = await vvClient.forms.getForms(
@@ -216,7 +215,7 @@ module.exports.main = async function (ffCollection, vvClient, response) {
               throw new Error(`Data was not returned when calling getForms.`);
             }
 
-            sortedCertificates = getEnrollmentFormsData.sort(
+            sortedCertificates = getCertificateFormsData.sort(
               (a, b) =>
                 moment(b[findKey(b, "Date Expires")]) -
                 moment(a[findKey(a, "Date Expires")])
@@ -544,10 +543,11 @@ module.exports.main = async function (ffCollection, vvClient, response) {
           let expireDate = `12/31/${certificateToGen["Certificate Year"]}`;
           let certificateStatus = "Pending Inspection";
           let certificateType = "New";
-          let currentDate = moment().tz(timeZone).format(dateFormat);
+          // If certificate year is equal to previous year
           let certificatesToExpire = sortedCertificates.filter(
             (certificate) =>
-              certificate["Issue Date"].year() === currentDate.year() - 1
+              certificate["certificate Year"] ===
+              (moment().year() - 1).toString()
           );
 
           if (newOrRenewal === "Renewal") {
@@ -826,10 +826,43 @@ module.exports.main = async function (ffCollection, vvClient, response) {
             { name: "New or Renewal", value: newOrRenewal },
           ];
 
-          let genInspectionResp = await vvClient.scripts.runWebService(
-            "LibOpPermStartInspection",
+          /*
+    Use this snippet to run and debug locally 2 chained Web Services
+
+    WS1: Web Service containing the runWebService call
+    WS2: Web Service Being called from WS 1
+        
+    How to use:
+    1- Create the files for WS1 and WS2 in your local environment
+    1- Comment the following line out in the WS1 code: await vvClient.scripts.runWebService("SecondWebService", RequestArr)
+    2- Add this code before the commented out line
+    3- Replace RequestArr variable for the variable you were using as second parameter in runWebService method
+    4- Replace [SecondWebService.js] for the name of the WS2 file
+    5- Insert snippet "Locally Run & Debug Chained Web Services - Response" in WS2
+    6- Run the code and debug the web service.
+     
+    Before posting the WS into VV:
+    1- Uncomment the line await vvClient.scripts.runWebService("SecondWebService", RequestArr)
+    2- Comment out the code for this snippet
+    
+    Parameters:
+        RequestArr - (Array): This Array should contain all the information requested by the Script that is going to be executed.
+*/
+          const clientLibrary = require("../VVRestApi");
+          const scriptToExecute = require("../files/LibOpPermStartInspection.js");
+          const ffcol = new clientLibrary.forms.formFieldCollection(
             generateInspectionArr
           );
+          const genInspectionResp = await scriptToExecute.main(
+            ffcol,
+            vvClient,
+            response
+          );
+
+          // let genInspectionResp = await vvClient.scripts.runWebService(
+          //   "LibOpPermStartInspection",
+          //   generateInspectionArr
+          // );
           let genInspectionData = genInspectionResp.hasOwnProperty("data")
             ? genInspectionResp.data
             : null;
@@ -896,6 +929,67 @@ module.exports.main = async function (ffCollection, vvClient, response) {
     outputCollection[3] = null;
     outputCollection[4] = errorLog;
   } finally {
-    response.json(200, outputCollection);
+    /*
+    Use this snippet to run and debug locally 2 chained Web Services
+ 
+    WS1: Web Service containing the runWebService call
+    WS2: Web Service Being called from WS 1
+ 
+    How to use:
+    1- Insert in WS1 the snippet "Locally Run & Debug Chained Web Services - Call"
+    2- Comment out any appearance of the line response.json(200, outputCollection);
+    3- Add the code of this snippet where is indicated in the comments
+    
+    Before posting the WS into VV:
+    1- Uncomment the line response.json(200, outputCollection);
+    2- Comment out the code for this snippet
+ 
+    Parameters:
+        respWebService - (Object): Contains the response status and message to return. 
+        outputCollection - (Array): Contains the Success message and extra data to return.
+*/
+    let respWebService = {
+      meta: null,
+      data: null,
+    };
+    let outputCollection = [];
+
+    try {
+      /*
+        This code should be added in the main try section.
+    */
+      outputCollection[0] = "Success";
+      outputCollection[1] = "Certificate(s) Generated.";
+      outputCollection[2] = renewalCertificatesGenerated;
+      outputCollection[3] = newCertificatesGenerated;
+      outputCollection[4] = null;
+
+      respWebService.meta = {
+        method: "POST",
+        status: 200,
+        statusMsg: "OK",
+      };
+      respWebService.data = outputCollection;
+    } catch (error) {
+      /*
+        This code should be added in the catch section.
+        This code should replace the statement: return response.json(200).
+    */
+      respWebService.meta = {
+        errors: error.message,
+        method: "POST",
+        status: 400,
+        statusMsg: "ERROR",
+      };
+    } finally {
+      /*
+        This code should be added in the finally section or wherever is a response.json call
+        This code should replace the statement: return response.json(200).
+    */
+      return respWebService;
+      //response.json(200, outputCollection);
+    }
+
+    // response.json(200, outputCollection);
   }
 };
