@@ -5,9 +5,9 @@ let moment = require("moment-timezone");
 module.exports.getCredentials = function () {
   var options = {};
   options.customerAlias = "CityofLincoln";
-  options.databaseAlias = "Permits";
-  options.userId = "9c9fc654-5068-4e99-9f0c-da5258e5fd5f";
-  options.password = "GBmuogNipLwWXea5dsXbYLRJ2yZETc8odeMZ5M8xmIA=";
+  options.databaseAlias = "Main";
+  options.userId = "Lincoln.dev.api";
+  options.password = "UoNsd7esY7Z";
   options.clientId = "9c9fc654-5068-4e99-9f0c-da5258e5fd5f";
   options.clientSecret = "GBmuogNipLwWXea5dsXbYLRJ2yZETc8odeMZ5M8xmIA=";
   return options;
@@ -32,7 +32,7 @@ module.exports.main = async function (ffCollection, vvClient, response) {
                   4. Call getCustomQueryResultsByName to get information needed to generate certificate based on passed in Operational Permit ID.
                   5. Call getForms to get the Inspector and Chief Inspector for the Certificate.
                   6. Call postForms to create a new Operational Permit Certificate.
-                    6A. Call postFormRevision to assign a status of "Expired" to the previouse certificate
+                    6A. Call postFormRevision to assign a status of "Expired" to last years certificates.
                     6B. Call postFormRevision to get the permit number using the Record ID from the previous step.
                   7. Call getForms to get all Occupancy Details for the most recent certificate.
                   7A. Call postForms to generate Occupancy Details and associate it to the newly generated certificate if this is a renewal.
@@ -43,7 +43,7 @@ module.exports.main = async function (ffCollection, vvClient, response) {
    Last Rev Date: 02/15/2021
    Revision Notes:
    02/15/2021  - Rocky Borg: Script created.
-   06/07/2022 - Renato Corbellini: updated Step 6 to check if the expire date of the last certficate has passed and if the status of the last certificate is "Expired".
+   06/15/2022 - Renato Corbellini: added helper function expireCertificates to expire all the certificates from last year. Updated Step 6A to expire all the certificates that have a Certificate Year equal to last years. Ex: if we are currently in 2022, this will expire all certificates that have a Certificate Year of 2021. 
 
 
  
@@ -113,7 +113,7 @@ module.exports.main = async function (ffCollection, vvClient, response) {
         errorLog.push(error.message);
       }
     }
-
+    // Expire all the certificates received
     async function expireCertificates(certificatesArray) {
       try {
         let postFormRes = await Promise.all(
@@ -543,7 +543,7 @@ module.exports.main = async function (ffCollection, vvClient, response) {
           let expireDate = `12/31/${certificateToGen["Certificate Year"]}`;
           let certificateStatus = "Pending Inspection";
           let certificateType = "New";
-          // If certificate year is equal to previous year
+          // If certificate year is equal to previous year it adds the certificate to the array
           let certificatesToExpire = sortedCertificates.filter(
             (certificate) =>
               certificate["certificate Year"] ===
@@ -826,43 +826,10 @@ module.exports.main = async function (ffCollection, vvClient, response) {
             { name: "New or Renewal", value: newOrRenewal },
           ];
 
-          /*
-    Use this snippet to run and debug locally 2 chained Web Services
-
-    WS1: Web Service containing the runWebService call
-    WS2: Web Service Being called from WS 1
-        
-    How to use:
-    1- Create the files for WS1 and WS2 in your local environment
-    1- Comment the following line out in the WS1 code: await vvClient.scripts.runWebService("SecondWebService", RequestArr)
-    2- Add this code before the commented out line
-    3- Replace RequestArr variable for the variable you were using as second parameter in runWebService method
-    4- Replace [SecondWebService.js] for the name of the WS2 file
-    5- Insert snippet "Locally Run & Debug Chained Web Services - Response" in WS2
-    6- Run the code and debug the web service.
-     
-    Before posting the WS into VV:
-    1- Uncomment the line await vvClient.scripts.runWebService("SecondWebService", RequestArr)
-    2- Comment out the code for this snippet
-    
-    Parameters:
-        RequestArr - (Array): This Array should contain all the information requested by the Script that is going to be executed.
-*/
-          const clientLibrary = require("../VVRestApi");
-          const scriptToExecute = require("../files/LibOpPermStartInspection.js");
-          const ffcol = new clientLibrary.forms.formFieldCollection(
+          let genInspectionResp = await vvClient.scripts.runWebService(
+            "LibOpPermStartInspection",
             generateInspectionArr
           );
-          const genInspectionResp = await scriptToExecute.main(
-            ffcol,
-            vvClient,
-            response
-          );
-
-          // let genInspectionResp = await vvClient.scripts.runWebService(
-          //   "LibOpPermStartInspection",
-          //   generateInspectionArr
-          // );
           let genInspectionData = genInspectionResp.hasOwnProperty("data")
             ? genInspectionResp.data
             : null;
@@ -929,67 +896,6 @@ module.exports.main = async function (ffCollection, vvClient, response) {
     outputCollection[3] = null;
     outputCollection[4] = errorLog;
   } finally {
-    /*
-    Use this snippet to run and debug locally 2 chained Web Services
- 
-    WS1: Web Service containing the runWebService call
-    WS2: Web Service Being called from WS 1
- 
-    How to use:
-    1- Insert in WS1 the snippet "Locally Run & Debug Chained Web Services - Call"
-    2- Comment out any appearance of the line response.json(200, outputCollection);
-    3- Add the code of this snippet where is indicated in the comments
-    
-    Before posting the WS into VV:
-    1- Uncomment the line response.json(200, outputCollection);
-    2- Comment out the code for this snippet
- 
-    Parameters:
-        respWebService - (Object): Contains the response status and message to return. 
-        outputCollection - (Array): Contains the Success message and extra data to return.
-*/
-    let respWebService = {
-      meta: null,
-      data: null,
-    };
-    let outputCollection = [];
-
-    try {
-      /*
-        This code should be added in the main try section.
-    */
-      outputCollection[0] = "Success";
-      outputCollection[1] = "Certificate(s) Generated.";
-      outputCollection[2] = renewalCertificatesGenerated;
-      outputCollection[3] = newCertificatesGenerated;
-      outputCollection[4] = null;
-
-      respWebService.meta = {
-        method: "POST",
-        status: 200,
-        statusMsg: "OK",
-      };
-      respWebService.data = outputCollection;
-    } catch (error) {
-      /*
-        This code should be added in the catch section.
-        This code should replace the statement: return response.json(200).
-    */
-      respWebService.meta = {
-        errors: error.message,
-        method: "POST",
-        status: 400,
-        statusMsg: "ERROR",
-      };
-    } finally {
-      /*
-        This code should be added in the finally section or wherever is a response.json call
-        This code should replace the statement: return response.json(200).
-    */
-      return respWebService;
-      //response.json(200, outputCollection);
-    }
-
-    // response.json(200, outputCollection);
+    response.json(200, outputCollection);
   }
 };
