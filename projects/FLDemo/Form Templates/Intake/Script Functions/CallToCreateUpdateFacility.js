@@ -60,7 +60,7 @@ $.when(CallServerSide()).always(function (resp) {
                 }*/
         VV.Form.DoAjaxFormSave().then(function () {
           VV.Form.HideLoadingPanel();
-          VV.Form.SetFieldValue("Display State", "5", true);
+          VV.Form.SetFieldValue("Display State", "6", true);
         });
       } else if (resp.data[0] == "Error") {
         VV.Form.HideLoadingPanel();

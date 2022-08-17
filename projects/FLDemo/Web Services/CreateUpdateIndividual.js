@@ -363,7 +363,6 @@ module.exports.main = async function (ffCollection, vvClient, response) {
     );
 
     // Extract the form ID from the created Individual Records (this will be used when relating the records to the employee assignment record)
-
     let CEOorPresID = CEOorPresCreateResp.data[0].instanceName;
 
     // Create an object with the information to create a new Employee Assignment Record
@@ -378,12 +377,13 @@ module.exports.main = async function (ffCollection, vvClient, response) {
     );
 
     //Extract the employee revision ID from the new employee record. This will be used to related the employee revision ID with the Individual and Business Record.
-
     let employeeRevisionID = createEmployeeCEOResp.data.revisionId;
 
     // Relate the employee record to the individual record.
-
     await relateRecords(employeeRevisionID, CEOorPresID);
+
+    // Relate the employee record to the business record.
+    await relateRecords(employeeRevisionID, businessID);
 
     // LOGIC FOR THE CHIEF MEDICAL OFFICER
 
@@ -397,7 +397,6 @@ module.exports.main = async function (ffCollection, vvClient, response) {
     let CMOCreateResp = await createIndividualRecord(createCMOFields);
 
     // Extract the form ID from the created Individual Records (this will be used when relating the records to the employee assignment record)
-
     let CMOID = CMOCreateResp.data[0].instanceName;
 
     // Create an object with the information to create a new Employee Assignment Record
@@ -412,15 +411,12 @@ module.exports.main = async function (ffCollection, vvClient, response) {
     );
 
     //Extract the employee revision ID from the new employee record. This will be used to related the employee revision ID with the Individual and Business Record.
-
     let employeeRevisionID = createEmployeeCMOResp.data.revisionId;
 
     // Relate the employee record to the individual record.
-
     await relateRecords(employeeRevisionID, CMOID);
 
     // Relate the employee record to the business record.
-
     await relateRecords(employeeRevisionID, businessID);
 
     outputCollection[0] = "Success";

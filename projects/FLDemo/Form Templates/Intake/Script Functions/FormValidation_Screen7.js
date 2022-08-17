@@ -114,20 +114,20 @@ if (ControlName == "CEO or President State" || RunAll) {
   }
 }
 
-if (ControlName == "CEO or President Zip" || RunAll) {
+if (ControlName == "CEO or President Zip Code" || RunAll) {
   if (
     VV.Form.Global.CentralValidation(
-      VV.Form.GetFieldValue("CEO or President Zip"),
+      VV.Form.GetFieldValue("CEO or President Zip Code"),
       "Zip"
     ) == false
   ) {
     VV.Form.SetValidationErrorMessageOnField(
-      "CEO or President Zip",
-      "A value needs to be entered for the CEO or President Zip."
+      "CEO or President Zip Code",
+      "A value needs to be entered for the CEO or President Zip Code."
     );
     ErrorReporting = false;
   } else {
-    VV.Form.ClearValidationErrorOnField("CEO or President Zip");
+    VV.Form.ClearValidationErrorOnField("CEO or President Zip Code");
   }
 }
 
@@ -135,11 +135,11 @@ if (ControlName == "CEO or President Phone" || RunAll) {
   if (
     VV.Form.Global.CentralValidation(
       VV.Form.GetFieldValue("CEO or President Phone"),
-      "CEO or President Phone"
+      "Phone"
     ) == false
   ) {
     VV.Form.SetValidationErrorMessageOnField(
-      "CEO or President Phone",
+      "Phone",
       "A value needs to be entered for the CEO or President Phone."
     );
     ErrorReporting = false;
@@ -269,20 +269,20 @@ if (ControlName == "Chief Medical Officer State" || RunAll) {
   }
 }
 
-if (ControlName == "Chief Medical Officer Zip" || RunAll) {
+if (ControlName == "Chief Medical Officer Zip Code" || RunAll) {
   if (
     VV.Form.Global.CentralValidation(
-      VV.Form.GetFieldValue("Chief Medical Officer Zip"),
+      VV.Form.GetFieldValue("Chief Medical Officer Zip Code"),
       "Zip"
     ) == false
   ) {
     VV.Form.SetValidationErrorMessageOnField(
-      "Chief Medical Officer Zip",
-      "A value needs to be entered for the Chief Medical Officer Zip."
+      "Chief Medical Officer Zip Code",
+      "A value needs to be entered for the Chief Medical Officer Zip Code."
     );
     ErrorReporting = false;
   } else {
-    VV.Form.ClearValidationErrorOnField("Chief Medical Officer Zip");
+    VV.Form.ClearValidationErrorOnField("Chief Medical Officer Zip Code");
   }
 }
 
@@ -290,7 +290,7 @@ if (ControlName == "Chief Medical Officer Phone" || RunAll) {
   if (
     VV.Form.Global.CentralValidation(
       VV.Form.GetFieldValue("Chief Medical Officer Phone"),
-      "Chief Medical Officer Phone"
+      "Phone"
     ) == false
   ) {
     VV.Form.SetValidationErrorMessageOnField(

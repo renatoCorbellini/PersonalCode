@@ -79,7 +79,7 @@ switch (screen) {
 
   case 7:
     if (VV.Form.Template.FormValidation_Screen7()) {
-      // VV.Form.Template.CallToCreateUpdateFacility();
+      VV.Form.Template.CallToCreateUpdateIndividual();
     } else {
       VV.Form.HideLoadingPanel();
       VV.Form.Global.DisplayMessaging(requiredFieldsMsg, title);

@@ -1,11 +1,4 @@
-var isIndividual =
-  VV.Form.GetFieldValue("Business Type") == "Sole Proprietor" ? true : false;
-if (isIndividual) {
-  VV.Form.SetFieldValue("FEIN", "", false);
-} else {
-  VV.Form.SetFieldValue("SSN", "", false);
-}
-//CreateUpdateBusiness for Intake Form
+//CreateUpdateIndividual for Intake Form
 var CallServerSide = function () {
   VV.Form.ShowLoadingPanel();
   //This gets all of the form fields.
@@ -26,7 +19,7 @@ var CallServerSide = function () {
       VV.CustomerAlias +
       "/" +
       VV.CustomerDatabaseAlias +
-      "/scripts?name=CreateUpdateBusiness",
+      "/scripts?name=CreateUpdateIndividual",
     contentType: "application/json; charset=utf-8",
     data: data,
     success: "",
@@ -59,16 +52,16 @@ $.when(CallServerSide()).always(function (resp) {
   } else if (resp.meta.status == "200") {
     if (resp.data[0] != undefined) {
       if (resp.data[0] == "Success") {
-        messageData = "The record has been added.";
+        messageData = "The records have been added.";
         var title = "Save Form";
-        VV.Form.SetFieldValue("Business ID", resp.data[2], false);
-        VV.Form.SetFieldValue("Business GUID", resp.data[3], false);
+        // VV.Form.SetFieldValue("Business ID", resp.data[2], false);
+        // VV.Form.SetFieldValue("Business GUID", resp.data[3], false);
 
         VV.Form.ShowLoadingPanel();
         VV.Form.DoAjaxFormSave().then(function () {
           VV.Form.HideLoadingPanel();
           VV.Form.Global.DisplayMessaging(messageData, title);
-          VV.Form.SetFieldValue("Display State", "4", true);
+          VV.Form.SetFieldValue("Display State", "8", true);
         });
       } else if (resp.data[0] == "Error") {
         messageData = "An error was encountered. " + resp.data[1];
