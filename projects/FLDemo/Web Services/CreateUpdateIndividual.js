@@ -54,7 +54,7 @@ module.exports.main = async function (ffCollection, vvClient, response) {
                       3F. Extract the employee revision ID from the new employee record. This will be used to related the employee revision ID with the Individual and Business Record.
                       3G. Relate the employee record to the individual record.
                       3H. Relate the employee record to the business record.
-                    4. LOGIC FOR THE CEO OR PRESIDENT RECORD
+                    4. LOGIC FOR THE CHIEF MEDICAL OFFICER
                       4A. Check if an Individual Record already exists with the received Email.
                       4B. Create an object with the information to create a new Individual Record
                       4C. Create the Chief Medical Officer Individual Record
