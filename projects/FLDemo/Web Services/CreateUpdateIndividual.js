@@ -15,8 +15,8 @@ module.exports.main = async function (ffCollection, vvClient, response) {
   /*Script Name:  CreateUpdateIndividual
      Customer:    City of Lincoln
      Purpose:     The purpose of this process is to create two individual records (One for the CEO or President and one for the Chief Medical Officer (CMO) ) based on the information provided.
-     Parameters:    Business ID - (String, Required) Used to create the relation between the Employee Asignment Records and the Business Record.
-                    Individual required fields: Fields thay are required to created or update the individual record.
+     Parameters:    Business ID - (String, Required) Used to create the relation between the Employee Assignment Records and the Business Record.
+                    Individual required fields: Fields that are required to created or update the individual record.
                       CEO or President First Name - (String, Required) 
                       CEO or President Last Name - (String, Required) 
                       CEO or President MI - (String, Required) 
@@ -72,9 +72,7 @@ module.exports.main = async function (ffCollection, vvClient, response) {
      08/15/2022 - Renato Corbellini: Script created.
      */
 
-  logger.info(
-    "Start of the process EmployeeAssignmentAddEmployee at " + Date()
-  );
+  logger.info("Start of the process CreateUpdateIndividual at " + Date());
 
   /**********************
      Configurable Variables
