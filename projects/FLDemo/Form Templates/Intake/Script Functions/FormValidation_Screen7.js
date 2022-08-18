@@ -139,7 +139,7 @@ if (ControlName == "CEO or President Phone" || RunAll) {
     ) == false
   ) {
     VV.Form.SetValidationErrorMessageOnField(
-      "Phone",
+      "CEO or President Phone",
       "A value needs to be entered for the CEO or President Phone."
     );
     ErrorReporting = false;

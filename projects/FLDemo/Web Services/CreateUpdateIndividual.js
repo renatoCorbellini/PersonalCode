@@ -43,16 +43,28 @@ module.exports.main = async function (ffCollection, vvClient, response) {
                     2. Message
                     3. Individual ID - If success and individual record created
                     
-     Pseudo code:   1. Verify if the Business ID was provided. 
-                    2. Search the Business Record.
-                    3. Validate if the individual ID is authorized to update the business record.
-                    4. Update the business record with the information provided. 
-                    5. If the business id was not provided, search if exist a business record with the same legal name or FEIN or SSN. 
-                    6. Create a new business record if the information is unique. 
-                    7. Search the individual record based on the individual id.
-                    8. Create a new employee record based on the information of the individual record. 
-                    9. Relate the new employee record with the new business record and the individual record.
-                    10. Send response with return array.
+     Pseudo code:   1. Fields required to create the Individual Record.
+                    2. Get the revisionId of the business to send back to the client if process successful
+                    3. LOGIC FOR THE CEO OR PRESIDENT RECORD
+                      3A. Check if an Individual Record already exists with the received Email.
+                      3B. Create an object with the information to create a new Individual Record.
+                      3C. Create the CEO or President Individual Record.
+                      3D. Add the requiered information to create the Employee Asignment Record
+                      3E. Create an object with the information to create a new Employee Assignment Record
+                      3F. Extract the employee revision ID from the new employee record. This will be used to related the employee revision ID with the Individual and Business Record.
+                      3G. Relate the employee record to the individual record.
+                      3H. Relate the employee record to the business record.
+                    4. LOGIC FOR THE CEO OR PRESIDENT RECORD
+                      4A. Check if an Individual Record already exists with the received Email.
+                      4B. Create an object with the information to create a new Individual Record
+                      4C. Create the Chief Medical Officer Individual Record
+                      4D. Add the requiered information to create the Employee Asignment Record
+                      4E. Create an object with the information to create a new Employee Assignment Record
+                      4F. Extract the employee revision ID from the new employee record. This will be used to related the employee revision ID with the Individual and Business Record.
+                      4G. Relate the employee record to the individual record.
+                      4H. Relate the employee record to the business record.
+                    5. Build the response array
+                    6. Send the response
    
      Date of Dev: 08/15/2022
      Last Rev Date: 08/15/2022
@@ -222,6 +234,24 @@ module.exports.main = async function (ffCollection, vvClient, response) {
     return vvClientRes;
   }
 
+  async function getBusinessInformation(businessID) {
+    const shortDescription = `Get form ${businessID}`;
+
+    const getFormsParams = {
+      q: `[Business ID] eq '${businessID}'`,
+      fields: "revisionId",
+    };
+
+    const getFormsRes = await vvClient.forms
+      .getForms(getFormsParams, BusinessTemplateID)
+      .then((res) => parseRes(res))
+      .then((res) => checkMetaAndStatus(res, shortDescription))
+      .then((res) => checkDataPropertyExists(res, shortDescription))
+      .then((res) => checkDataIsNotEmpty(res, shortDescription));
+
+    return getFormsRes.data[0].revisionId;
+  }
+
   async function lookForExistingIndividual(individualEmail) {
     let individualParams = {};
     individualParams = {
@@ -299,11 +329,11 @@ module.exports.main = async function (ffCollection, vvClient, response) {
       objFields["Hidden Last"] = dataFields.LastName;
     }
     if (templateID === EmployeeTemplateID) {
-      objFields["Employee First Name"] = dataFields["first Name"];
-      objFields["Employee Last Name"] = dataFields["last Name"];
-      objFields["Email"] = dataFields["personal Email"];
-      objFields["Employee Email"] = dataFields["personal Email"];
-      objFields["MI"] = dataFields["middle Initial"];
+      objFields["Employee First Name"] = dataFields.FirstName;
+      objFields["Employee Last Name"] = dataFields.LastName;
+      objFields["Email"] = dataFields.Email;
+      objFields["Employee Email"] = dataFields.Email;
+      objFields["MI"] = dataFields.MI;
       objFields["Individual ID"] = dataFields.instanceName;
       objFields["Business ID"] = businessID;
       objFields["Business Administrator"] = true;
@@ -314,7 +344,7 @@ module.exports.main = async function (ffCollection, vvClient, response) {
   }
 
   try {
-    //Fields required to create the Individual Record.
+    // STEP 1 - Fields required to create the Individual Record.
     let CEOorPresData = {
       FirstName: getFieldValueByName("CEO or President First Name"),
       LastName: getFieldValueByName("CEO or President Last Name"),
@@ -329,45 +359,49 @@ module.exports.main = async function (ffCollection, vvClient, response) {
     };
 
     let CMOData = {
-      CMOFirstName: getFieldValueByName("Chief Medical Officer First Name"),
-      CMOLastName: getFieldValueByName("Chief Medical Officer Last Name"),
-      CMOMI: getFieldValueByName("Chief Medical Officer MI", "isOptional"),
-      CMOTitle: getFieldValueByName("Chief Medical Officer Title"),
-      CMOStreetAddress: getFieldValueByName(
+      FirstName: getFieldValueByName("Chief Medical Officer First Name"),
+      LastName: getFieldValueByName("Chief Medical Officer Last Name"),
+      MI: getFieldValueByName("Chief Medical Officer MI", "isOptional"),
+      Title: getFieldValueByName("Chief Medical Officer Title"),
+      StreetAddress: getFieldValueByName(
         "Chief Medical Officer Street Address"
       ),
-      CMOCity: getFieldValueByName("Chief Medical Officer City"),
-      CMOState: getFieldValueByName("Chief Medical Officer State"),
-      CMOZipCode: getFieldValueByName("Chief Medical Officer Zip Code"),
-      CMOPhone: getFieldValueByName("Chief Medical Officer Phone"),
-      CMOEmail: getFieldValueByName("Chief Medical Officer Email"),
+      City: getFieldValueByName("Chief Medical Officer City"),
+      State: getFieldValueByName("Chief Medical Officer State"),
+      ZipCode: getFieldValueByName("Chief Medical Officer Zip Code"),
+      Phone: getFieldValueByName("Chief Medical Officer Phone"),
+      Email: getFieldValueByName("Chief Medical Officer Email"),
     };
 
     let individualID = getFieldValueByName("Individual ID");
     let businessID = getFieldValueByName("Business ID");
 
-    // LOGIC FOR THE CEO OR PRESIDENT RECORD
+    // STEP 2 - Get the revisionId of the business to send back to the client if process successful
+    let businessRevisionId = await getBusinessInformation(businessID);
 
-    // Check if an Individual Record already exists with the received Email.
+    // STEP 3 - LOGIC FOR THE CEO OR PRESIDENT RECORD
+
+    // STEP 3A - Check if an Individual Record already exists with the received Email.
     await lookForExistingIndividual(CEOorPresData.Email);
 
-    //Create an object with the information to create a new Individual Record
+    // STEP 3B - Create an object with the information to create a new Individual Record
     let createCEOorPresFields = createUpdateObj(
       CEOorPresData,
       IndividualTemplateID
     );
 
-    // Create the CEO or President Individual Record
+    // STEP 3C - Create the CEO or President Individual Record
     let CEOorPresCreateResp = await createIndividualRecord(
       createCEOorPresFields
     );
 
-    // Extract the form ID from the created Individual Records (this will be used when relating the records to the employee assignment record)
-    let CEOorPresID = CEOorPresCreateResp.data[0].instanceName;
+    // STEP 3D - Add the requiered information to create the Employee Asignment Record
+    CEOorPresData.instanceName = CEOorPresCreateResp.data.instanceName;
+    CEOorPresData.businessID = businessID;
 
-    // Create an object with the information to create a new Employee Assignment Record
+    // STEP 3E - Create an object with the information to create a new Employee Assignment Record
     let createEmployeeCEOFields = createUpdateObj(
-      CEOorPresCreateResp.data[0],
+      CEOorPresData,
       EmployeeTemplateID,
       businessID
     );
@@ -376,32 +410,36 @@ module.exports.main = async function (ffCollection, vvClient, response) {
       createEmployeeCEOFields
     );
 
-    //Extract the employee revision ID from the new employee record. This will be used to related the employee revision ID with the Individual and Business Record.
+    // STEP 3F - Extract the employee revision ID from the new employee record. This will be used to related the employee revision ID with the Individual and Business Record.
     let employeeRevisionID = createEmployeeCEOResp.data.revisionId;
 
-    // Relate the employee record to the individual record.
-    await relateRecords(employeeRevisionID, CEOorPresID);
+    // STEP 3G - Relate the employee record to the individual record.
+    await relateRecords(
+      employeeRevisionID,
+      CEOorPresCreateResp.data.instanceName
+    );
 
-    // Relate the employee record to the business record.
+    // STEP 3H - Relate the employee record to the business record.
     await relateRecords(employeeRevisionID, businessID);
 
-    // LOGIC FOR THE CHIEF MEDICAL OFFICER
+    // STEP 4 - LOGIC FOR THE CHIEF MEDICAL OFFICER
 
-    // Check if an Individual Record already exists with the received Email.
+    // STEP 4A - Check if an Individual Record already exists with the received Email.
     await lookForExistingIndividual(CMOData.Email);
 
-    //Create an object with the information to create a new Individual Record
+    // STEP 4B - Create an object with the information to create a new Individual Record
     let createCMOFields = createUpdateObj(CMOData, IndividualTemplateID);
 
-    // Create the Chief Medical Officer Individual Record
+    // STEP 4C - Create the Chief Medical Officer Individual Record
     let CMOCreateResp = await createIndividualRecord(createCMOFields);
 
-    // Extract the form ID from the created Individual Records (this will be used when relating the records to the employee assignment record)
-    let CMOID = CMOCreateResp.data[0].instanceName;
+    // STEP 4D - Add the requiered information to create the Employee Asignment Record
+    CMOData.instanceName = CMOCreateResp.data.instanceName;
+    CMOData.businessID = businessID;
 
-    // Create an object with the information to create a new Employee Assignment Record
+    // STEP 4E - Create an object with the information to create a new Employee Assignment Record
     let createEmployeeCMOFields = createUpdateObj(
-      CMOCreateResp.data[0],
+      CMOData,
       EmployeeTemplateID,
       businessID
     );
@@ -410,15 +448,16 @@ module.exports.main = async function (ffCollection, vvClient, response) {
       createEmployeeCMOFields
     );
 
-    //Extract the employee revision ID from the new employee record. This will be used to related the employee revision ID with the Individual and Business Record.
-    let employeeRevisionID = createEmployeeCMOResp.data.revisionId;
+    // STEP 4F - Extract the employee revision ID from the new employee record. This will be used to related the employee revision ID with the Individual and Business Record.
+    employeeRevisionID = createEmployeeCMOResp.data.revisionId;
 
-    // Relate the employee record to the individual record.
-    await relateRecords(employeeRevisionID, CMOID);
+    // STEP 4G - Relate the employee record to the individual record.
+    await relateRecords(employeeRevisionID, CMOCreateResp.data.instanceName);
 
-    // Relate the employee record to the business record.
+    // STEP 4H - Relate the employee record to the business record.
     await relateRecords(employeeRevisionID, businessID);
 
+    // STEP 5 - Build the response array
     outputCollection[0] = "Success";
     outputCollection[1] = "Individuals and Employee Records created.";
     outputCollection[2] = businessID;
@@ -429,6 +468,7 @@ module.exports.main = async function (ffCollection, vvClient, response) {
     outputCollection[0] = "Error";
     outputCollection[1] = error.message ? error.message : error;
   } finally {
+    // Step 6 - Send the response
     response.json(200, outputCollection);
   }
 };

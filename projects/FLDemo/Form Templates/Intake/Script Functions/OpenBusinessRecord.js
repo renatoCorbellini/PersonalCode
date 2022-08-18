@@ -1,12 +1,18 @@
-//CreateUpdateIndividual for Intake Form
+//OpenBusinessRecord for Intake Form
+
 var CallServerSide = function () {
   VV.Form.ShowLoadingPanel();
   //This gets all of the form fields.
   var formData = VV.Form.getFormDataCollection();
 
   formData.push({
-    name: "Individual ID",
-    value: VV.Form.GetFieldValue("Individual ID"),
+    name: "Intake ID",
+    value: VV.Form.DhDocID,
+  });
+
+  formData.push({
+    name: "Revision ID",
+    value: VV.Form.DataID,
   });
 
   //Following will prepare the collection and send with call to server side script.
@@ -19,7 +25,7 @@ var CallServerSide = function () {
       VV.CustomerAlias +
       "/" +
       VV.CustomerDatabaseAlias +
-      "/scripts?name=CreateUpdateIndividual",
+      "/scripts?name=IntakeRelateDocstoBusiness",
     contentType: "application/json; charset=utf-8",
     data: data,
     success: "",
@@ -52,16 +58,14 @@ $.when(CallServerSide()).always(function (resp) {
   } else if (resp.meta.status == "200") {
     if (resp.data[0] != undefined) {
       if (resp.data[0] == "Success") {
-        messageData = "The records have been added.";
-        var title = "Save Form";
-        VV.Form.SetFieldValue("Business GUID", resp.data[3], false);
-
-        VV.Form.ShowLoadingPanel();
-        VV.Form.DoAjaxFormSave().then(function () {
-          VV.Form.HideLoadingPanel();
-          VV.Form.Global.DisplayMessaging(messageData, title);
-          VV.Form.SetFieldValue("Display State", "7", true);
-        });
+        //Open Business Form
+        window.open(
+          VV.BaseURL +
+            "formdetails?formid=" +
+            VV.Form.GetFieldValue("Business GUID") +
+            "&hidemenu=true",
+          "_self"
+        );
       } else if (resp.data[0] == "Error") {
         messageData = "An error was encountered. " + resp.data[1];
         VV.Form.HideLoadingPanel();
