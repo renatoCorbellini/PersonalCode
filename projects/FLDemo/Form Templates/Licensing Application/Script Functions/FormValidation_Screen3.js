@@ -239,37 +239,41 @@ if (ControlName == "Physical City" || RunAll) {
   }
 }
 
-if (ControlName == "First Name" || RunAll) {
+// First Name - The form field is broken and doesn't allow to change it's name
+
+if (ControlName == "DataField4" || RunAll) {
   if (
     VV.Form.Global.CentralValidation(
-      VV.Form.GetFieldValue("First Name"),
+      VV.Form.GetFieldValue("DataField4"),
       "Blank"
     ) == false
   ) {
     VV.Form.SetValidationErrorMessageOnField(
-      "First Name",
+      "DataField4",
       "A value needs to be entered for the First Name."
     );
     ErrorReporting = false;
   } else {
-    VV.Form.ClearValidationErrorOnField("First Name");
+    VV.Form.ClearValidationErrorOnField("DataField4");
   }
 }
 
-if (ControlName == "Last Name" || RunAll) {
+// Last Name - The form field is broken and doesn't allow to change it's name
+
+if (ControlName == "DataField11" || RunAll) {
   if (
     VV.Form.Global.CentralValidation(
-      VV.Form.GetFieldValue("Last Name"),
+      VV.Form.GetFieldValue("DataField11"),
       "Blank"
     ) == false
   ) {
     VV.Form.SetValidationErrorMessageOnField(
-      "Last Name",
+      "DataField11",
       "A value needs to be entered for the Last Name."
     );
     ErrorReporting = false;
   } else {
-    VV.Form.ClearValidationErrorOnField("Last Name");
+    VV.Form.ClearValidationErrorOnField("DataField11");
   }
 }
 
