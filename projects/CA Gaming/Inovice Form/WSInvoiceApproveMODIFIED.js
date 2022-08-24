@@ -1,24 +1,13 @@
 var logger = require("../log");
 
-// module.exports.getCredentials = function () {
-//   var options = {};
-//   options.customerAlias = "CAGaming";
-//   options.databaseAlias = "Default";
-//   options.userId = "ca.admin";
-//   options.password = "Au3rs0ft1";
-//   options.clientId = "4426f41a-0e49-4df7-b6ac-55df031605fd";
-//   options.clientSecret = "kZsf9b88r77DOBDPVvVGS7q6Plez3v43VeZye5OLxGQ=";
-//   return options;
-// };
-
 module.exports.getCredentials = function () {
   var options = {};
   options.customerAlias = "CAGaming";
   options.databaseAlias = "Default";
-  options.userId = "renato.corbellini@onetree.com";
-  options.password = "M4rz0.2022";
-  options.clientId = "43d9f3dc-af49-48f2-8b77-db7377d21b5c";
-  options.clientSecret = "F6YoDeB72Up7bYbstkoFiFUSvMk7dH5E0XOmODgnLbg=";
+  options.userId = "ca.admin";
+  options.password = "Au3rs0ft1";
+  options.clientId = "4426f41a-0e49-4df7-b6ac-55df031605fd";
+  options.clientSecret = "kZsf9b88r77DOBDPVvVGS7q6Plez3v43VeZye5OLxGQ=";
   return options;
 };
 

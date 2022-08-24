@@ -132,7 +132,31 @@ module.exports.main = async function (ffCollection, vvClient, response) {
     return vvClientRes;
   }
 
-  // GET ALL THE FEES THAT ARE ACTIVE (CURRENT DATE >= EFFECTIVITY START DATE AND CURRENT DATE <= EFECTIVITY END DATE)
+  // GET ALL THE FEES THAT ARE ACTIVE FOR THE RECORD DATE (START RANGE >= EFFECTIVITY START DATE AND START RANGE <= EFECTIVITY END DATE)
+
+  let formIDvariable = ffCollection.getFormFieldByName("");
+  const shortDescription = `Get form ${formIDvariable}`;
+  const templateName = `Treatment Questionnaire Form`;
+
+  const getFormsParams = {
+    q: `[Individual ID] eq '${formIDvariable}'`,
+    // expand: true, // true to get all the form's fields
+    fields: "id,name", // to get only the fields 'id' and 'name'
+  };
+
+  const getFormsRes = await vvClient.forms
+    .getForms(getFormsParams, templateName)
+    .then((res) => parseRes(res))
+    .then((res) => checkMetaAndStatus(res, shortDescription))
+    .then((res) => checkDataPropertyExists(res, shortDescription));
+  //  .then((res) => checkDataIsNotEmpty(res, shortDescription));
+  //  If you want to throw an error and stop the process if no data is returned, uncomment the line above
+
+  if (getFormsRes.data.length == 0) {
+    // Form doesn't exist
+  } else {
+    // Form exists
+  }
 
   const queryName = "zWebSvc Active Fees";
   let shortDescription = "Custom Query trying to get active fees";
