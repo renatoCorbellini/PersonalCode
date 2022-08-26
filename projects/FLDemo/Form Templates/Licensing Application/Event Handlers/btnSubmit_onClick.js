@@ -7,12 +7,12 @@ let messageData =
 let title = "Confirm Submit";
 
 if (VV.Form.Template.FormValidation()) {
-  VV.Form.Global.DiaplayConfirmMessaging(
+  VV.Form.Global.DisplayConfirmMessaging(
     messageData,
     title,
-    VV.Form.Template.SubmitApplication()
+    VV.Form.Template.CallToSubmitApplication(),
+    VV.Form.Template.CancelFunction()
   );
-  VV.Form.SetFieldValue("Status", "Submitted", true);
 } else {
   VV.Form.HideLoadingPanel();
   VV.Form.Global.DisplayMessaging(requiredFieldsMsg, requiredFieldstitle);

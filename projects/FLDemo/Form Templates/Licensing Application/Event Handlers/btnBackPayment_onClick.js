@@ -1,1 +1,1 @@
-VV.Form.SetFieldValue("Display State", "6", true);
+VV.Form.SetFieldValue("Display State", "5", true);
