@@ -10,8 +10,8 @@ if (VV.Form.Template.FormValidation()) {
   VV.Form.Global.DisplayConfirmMessaging(
     messageData,
     title,
-    VV.Form.Template.CallToSubmitApplication(),
-    VV.Form.Template.CancelFunction()
+    VV.Form.Template.CallToSubmitApplication,
+    VV.Form.Template.CancelFunction
   );
 } else {
   VV.Form.HideLoadingPanel();

@@ -81,9 +81,10 @@ module.exports.main = async function (ffCollection, vvClient, response) {
   let BusinessTemplateID = "Business";
   let EmployeeTemplateID = "Employee Assignment";
   let IndividualTemplateID = "Individual Record";
+  let IntakeTemplateID = "Intake";
 
   //Query Name to get Business information and Administrator Employees.
-  let businessQueryName = "zWebSvcBusinessAdministratorEmployee";
+  // let businessQueryName = "zWebSvcBusinessAdministratorEmployee";
 
   //Script variables
   let outputCollection = [];
@@ -292,6 +293,15 @@ module.exports.main = async function (ffCollection, vvClient, response) {
       .then((res) => checkMetaAndStatus(res, shortDescription));
   }
 
+  async function relateIntakeRecords(intakeRevId, formId) {
+    shortDescription = `relating forms: ${intakeRevId} and form ${formId}`;
+
+    await vvClient.forms
+      .relateFormByDocId(intakeRevId, formId)
+      .then((res) => parseRes(res))
+      .then((res) => checkMetaAndStatus(res, shortDescription));
+  }
+
   async function createEmployeeRecord(employeeData) {
     const shortDescription = `Post form ${EmployeeTemplateID}`;
 
@@ -371,8 +381,25 @@ module.exports.main = async function (ffCollection, vvClient, response) {
       Email: getFieldValueByName("Chief Medical Officer Email"),
     };
 
-    let individualID = getFieldValueByName("Individual ID");
+    let intakeID = getFieldValueByName("Record ID");
     let businessID = getFieldValueByName("Business ID");
+
+    // Get the revisionId of the Intake
+    const shortDescription = `Get form ${intakeID}`;
+
+    const getFormsParams = {
+      q: `[Business ID] eq '${intakeID}'`,
+      fields: "revisionId",
+    };
+
+    const getFormsRes = await vvClient.forms
+      .getForms(getFormsParams, IntakeTemplateID)
+      .then((res) => parseRes(res))
+      .then((res) => checkMetaAndStatus(res, shortDescription))
+      .then((res) => checkDataPropertyExists(res, shortDescription))
+      .then((res) => checkDataIsNotEmpty(res, shortDescription));
+
+    let intakeRevisionId = getFormsRes.data[0].revisionId;
 
     // STEP 2 - Get the revisionId of the business to send back to the client if process successful
     let businessRevisionId = await getBusinessInformation(businessID);
@@ -411,6 +438,8 @@ module.exports.main = async function (ffCollection, vvClient, response) {
     // STEP 3F - Extract the employee revision ID from the new employee record. This will be used to related the employee revision ID with the Individual and Business Record.
     let employeeRevisionID = createEmployeeCEOResp.data.revisionId;
 
+    let employeeFormID = createEmployeeCMOResp.data.instanceName;
+
     // STEP 3G - Relate the employee record to the individual record.
     await relateRecords(
       employeeRevisionID,
@@ -419,6 +448,10 @@ module.exports.main = async function (ffCollection, vvClient, response) {
 
     // STEP 3H - Relate the employee record to the business record.
     await relateRecords(employeeRevisionID, businessID);
+
+    // Relate the Intake with the employee record
+
+    await relateIntakeRecords(intakeRevisionId, employeeFormID);
 
     // STEP 4 - LOGIC FOR THE CHIEF MEDICAL OFFICER
 
@@ -449,11 +482,17 @@ module.exports.main = async function (ffCollection, vvClient, response) {
     // STEP 4F - Extract the employee revision ID from the new employee record. This will be used to related the employee revision ID with the Individual and Business Record.
     employeeRevisionID = createEmployeeCMOResp.data.revisionId;
 
+    employeeFormID = createEmployeeCMOResp.data.instanceName;
+
     // STEP 4G - Relate the employee record to the individual record.
     await relateRecords(employeeRevisionID, CMOCreateResp.data.instanceName);
 
     // STEP 4H - Relate the employee record to the business record.
     await relateRecords(employeeRevisionID, businessID);
+
+    // Relate the employee record with the Intake
+
+    await relateIntakeRecords(intakeRevisionId, employeeFormID);
 
     // STEP 5 - Build the response array
     outputCollection[0] = "Success";

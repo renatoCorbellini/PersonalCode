@@ -1,4 +1,4 @@
-//CallSubmitApplication for License Application Form
+//CreateUpdateIndividual for Intake Form
 var CallServerSide = function () {
   VV.Form.ShowLoadingPanel();
   //This gets all of the form fields.
@@ -6,7 +6,7 @@ var CallServerSide = function () {
 
   formData.push({
     name: "Individual ID",
-    value: VV.Form.GetFieldValue("DataField14"), // Individual ID
+    value: VV.Form.GetFieldValue("Record ID"),
   });
 
   //Following will prepare the collection and send with call to server side script.
@@ -19,7 +19,7 @@ var CallServerSide = function () {
       VV.CustomerAlias +
       "/" +
       VV.CustomerDatabaseAlias +
-      "/scripts?name=SubmitApplication",
+      "/scripts?name=CreateLicenseApplication",
     contentType: "application/json; charset=utf-8",
     data: data,
     success: "",
@@ -53,18 +53,21 @@ $.when(CallServerSide()).always(function (resp) {
     if (resp.data[0] != undefined) {
       if (resp.data[0] == "Success") {
         messageData =
-          "The License Application has been submited. You will receive an email notification soon.";
-        var title = "Success";
-
-        VV.Form.SetFieldValue("Status", "Submitted", false);
+          "The record has been saved. Click OK to go to the License Application Form.";
+        var title = "Saved Form";
 
         VV.Form.ShowLoadingPanel();
         VV.Form.DoAjaxFormSave().then(function () {
           VV.Form.HideLoadingPanel();
-          VV.Form.Global.DisplayMessaging(messageData, title);
+          // Open License Application Form
+          window.open(
+            VV.BaseURL +
+              "formdetails?formid=" +
+              resp.data[3] +
+              "&hidemenu=true",
+            "_self"
+          );
         });
-
-        VV.Form.SetFieldValue("Tab Control", "Business Information", true);
       } else if (resp.data[0] == "Error") {
         messageData = "An error was encountered. " + resp.data[1];
         VV.Form.HideLoadingPanel();

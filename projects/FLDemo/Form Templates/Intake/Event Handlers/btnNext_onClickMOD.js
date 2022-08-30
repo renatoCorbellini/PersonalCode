@@ -87,7 +87,8 @@ switch (screen) {
     break;
 
   case 8:
-    VV.Form.Template.OpenBusinessRecord();
+    // VV.Form.Template.OpenBusinessRecord();
+    VV.Form.Template.CallToCreateLicenseApplication();
     break;
 
   default:

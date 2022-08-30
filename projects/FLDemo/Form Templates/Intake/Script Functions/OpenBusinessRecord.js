@@ -59,13 +59,13 @@ $.when(CallServerSide()).always(function (resp) {
     if (resp.data[0] != undefined) {
       if (resp.data[0] == "Success") {
         //Open Business Form
-        window.open(
-          VV.BaseURL +
-            "formdetails?formid=" +
-            VV.Form.GetFieldValue("Business GUID") +
-            "&hidemenu=true",
-          "_self"
-        );
+        // window.open(
+        //   VV.BaseURL +
+        //     "formdetails?formid=" +
+        //     VV.Form.GetFieldValue("Business GUID") +
+        //     "&hidemenu=true",
+        //   "_self"
+        // );
       } else if (resp.data[0] == "Error") {
         messageData = "An error was encountered. " + resp.data[1];
         VV.Form.HideLoadingPanel();
