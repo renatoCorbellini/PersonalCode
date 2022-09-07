@@ -6,7 +6,7 @@ var CallServerSide = function () {
 
   formData.push({
     name: "Individual ID",
-    value: VV.Form.GetFieldValue("DataField14"), // Individual ID
+    value: VV.Form.GetFieldValue("Individual ID"), // Individual ID
   });
 
   //Following will prepare the collection and send with call to server side script.
@@ -56,15 +56,22 @@ $.when(CallServerSide()).always(function (resp) {
           "The License Application has been submited. You will receive an email notification soon.";
         var title = "Success";
 
-        VV.Form.SetFieldValue("Status", "Submitted", false);
+        let currentStatus = VV.Form.GetFieldValue("Status");
+
+        if (currentStatus === "Returned") {
+          VV.Form.SetFieldValue("Status", "Resubmitted", false);
+        } else {
+          let dateToday = Date();
+          VV.Form.SetFieldValue("Status", "Submitted", false);
+          VV.Form.SetFieldValue("Date Submitted", dateToday.toString(), false);
+        }
 
         VV.Form.ShowLoadingPanel();
         VV.Form.DoAjaxFormSave().then(function () {
           VV.Form.HideLoadingPanel();
           VV.Form.Global.DisplayMessaging(messageData, title);
+          VV.Form.SetFieldValue("Tab Control", "Business Information", true);
         });
-
-        VV.Form.SetFieldValue("Tab Control", "Business Information", true);
       } else if (resp.data[0] == "Error") {
         messageData = "An error was encountered. " + resp.data[1];
         VV.Form.HideLoadingPanel();

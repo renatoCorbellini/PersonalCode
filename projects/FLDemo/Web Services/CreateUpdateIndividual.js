@@ -339,6 +339,7 @@ module.exports.main = async function (ffCollection, vvClient, response) {
     if (templateID === EmployeeTemplateID) {
       objFields["Employee First Name"] = dataFields.FirstName;
       objFields["Employee Last Name"] = dataFields.LastName;
+      objFields["Title"] = dataFields.Title;
       objFields["Email"] = dataFields.Email;
       objFields["Employee Email"] = dataFields.Email;
       objFields["MI"] = dataFields.MI;
@@ -388,7 +389,7 @@ module.exports.main = async function (ffCollection, vvClient, response) {
     const shortDescription = `Get form ${intakeID}`;
 
     const getFormsParams = {
-      q: `[Business ID] eq '${intakeID}'`,
+      q: `[Record ID] eq '${intakeID}'`,
       fields: "revisionId",
     };
 
@@ -438,7 +439,7 @@ module.exports.main = async function (ffCollection, vvClient, response) {
     // STEP 3F - Extract the employee revision ID from the new employee record. This will be used to related the employee revision ID with the Individual and Business Record.
     let employeeRevisionID = createEmployeeCEOResp.data.revisionId;
 
-    let employeeFormID = createEmployeeCMOResp.data.instanceName;
+    let employeeFormID = createEmployeeCEOResp.data.instanceName;
 
     // STEP 3G - Relate the employee record to the individual record.
     await relateRecords(
@@ -498,7 +499,7 @@ module.exports.main = async function (ffCollection, vvClient, response) {
     outputCollection[0] = "Success";
     outputCollection[1] = "Individuals and Employee Records created.";
     outputCollection[2] = businessID;
-    outputCollection[3] = businessRevisionId;
+    // outputCollection[3] = businessRevisionId;
   } catch (error) {
     // Log errors captured.
     logger.info(JSON.stringify(error));
