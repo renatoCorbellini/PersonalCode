@@ -29,8 +29,23 @@ VV.Form.Global.CreatePaymentModal();
 // Validation Modal
 VV.Form.Global.ValidationCreateModal();
 
+let currentStatus = VV.Form.GetFieldValue("Status");
+
 // If the user is in the State Staff group, assign a Pending status to the Application
-if (userGroups.includes("State Staff")) {
-  VV.Form.SetFieldValue("Status", "Pending", true);
+if (currentStatus !== "New") {
+  VV.Form.SetFieldValue("Tab Control", "Business Information", true);
+  if (
+    userGroups.includes("State Staff") &&
+    (currentStatus == "Submitted" || currentStatus == "Resubmitted")
+  ) {
+    VV.Form.SetFieldValue("Status", "Pending", true);
+  }
   VV.Form.DoAjaxFormSave();
+}
+
+// If Renewal Application, populate business and facility information
+let applicationMode = VV.Form.GetFieldValue("Application Mode");
+
+if (applicationMode == "Renewal") {
+  VV.Form.DoAjaxFormSave().then(() => VV.Form.Template.CallToRelateFacility());
 }

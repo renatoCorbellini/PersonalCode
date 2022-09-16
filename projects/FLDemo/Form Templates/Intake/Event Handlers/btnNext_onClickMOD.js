@@ -4,6 +4,8 @@ let requiredFieldsMsg =
   "All of the fields have not been filled in completely or there is an issue with the range of the data entered.  Highlight your mouse over the red icon to see how you can resolve the error stopping you from saving this form.";
 let title = "Required Fields";
 
+let individualsCreated = VV.Form.GetFieldValue("Individuals Created Checkbox");
+
 switch (screen) {
   case 1:
     screen = 2;
@@ -69,17 +71,29 @@ switch (screen) {
     break;
 
   case 6:
-    if (VV.Form.Template.FormValidation_Screen6()) {
+    if (
+      VV.Form.Template.FormValidation_Screen6() &&
+      VV.Form.Template.ValidateHoursOfOperation()
+    ) {
       VV.Form.Template.CallToCreateUpdateFacility();
     } else {
       VV.Form.HideLoadingPanel();
       VV.Form.Global.DisplayMessaging(requiredFieldsMsg, title);
     }
+    VV.Form.SetFieldValue(
+      "Hours of Operation Error",
+      !VV.Form.Template.ValidateHoursOfOperation(),
+      true
+    );
     break;
 
   case 7:
     if (VV.Form.Template.FormValidation_Screen7()) {
-      VV.Form.Template.CallToCreateUpdateIndividual();
+      if (individualsCreated == "False") {
+        VV.Form.Template.CallToCreateUpdateIndividual();
+      } else {
+        VV.Form.SetFieldValue("Display State", "8", true);
+      }
     } else {
       VV.Form.HideLoadingPanel();
       VV.Form.Global.DisplayMessaging(requiredFieldsMsg, title);

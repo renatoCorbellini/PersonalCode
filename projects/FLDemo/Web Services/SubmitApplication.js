@@ -44,10 +44,10 @@ module.exports.main = async function (ffCollection, vvClient, response) {
   const scheduledProcessName = "License Application Submitted Successfully";
 
   // Email addresses list to send notification if useTestEmailList is true.
-  const testEmailList = "renato.corbellini@onetree.com";
+  const testEmailList = "";
 
   // On 'false' sends the notification to all City Staff users email addresses.
-  const useTestEmailsList = true;
+  const useTestEmailsList = false;
 
   // Group of users to get email addresses to send notification.
   const groupsParamObj = [
@@ -327,6 +327,7 @@ module.exports.main = async function (ffCollection, vvClient, response) {
     let applicationRecordID = getFieldValueByName("Record ID");
     let firstName = getFieldValueByName("DataField4"); // First Name
     let lastName = getFieldValueByName("DataField11"); // Last Name
+    let status = getFieldValueByName("Status");
 
     let emailInfo = [
       userEmail,

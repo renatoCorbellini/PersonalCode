@@ -45,3 +45,24 @@ CREATE TABLE Funcionario (
     FOREIGN KEY (idProfesion) REFERENCES Profesion (id),
     FOREIGN KEY (idOficina) REFERENCES Oficina (id)
 );
+
+CREATE TABLE onlinecustomers (
+    id INT customerName VARCHAR(100),
+    city VARCHAR(100),
+    email VARCHAR(100) PRIMARY KEY (id),
+    UNIQUE (email)
+) CREATE TABLE orders (
+    id INT,
+    customerId INT,
+    orderTotal float,
+    discountRate float,
+    orderDate DATETIME,
+    PRIMARY KEY (id),
+    FOREIGN KEY (customerId) REFERENCES onlinecustomers (id),
+) CREATE TABLE sales (
+    id INT,
+    orderId INT,
+    salesTotal FLOAT,
+    PRIMARY KEY (id),
+    FOREIGN KEY (orderId) REFERENCES orders (id)
+)

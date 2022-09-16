@@ -371,7 +371,7 @@ if (emailAddress && emailConfirm) {
 
 let checkboxValue = VV.Form.GetFieldValue("Applicant Signature");
 
-if (!checkboxValue) {
+if (checkboxValue === "false") {
   VV.Form.SetValidationErrorMessageOnField(
     "Applicant Signature",
     "The Application should be signed before paying."

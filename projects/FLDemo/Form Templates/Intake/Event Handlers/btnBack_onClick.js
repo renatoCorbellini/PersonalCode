@@ -37,6 +37,9 @@ switch (screen) {
       screen = 6;
     }
     break;
+  case 8:
+    screen = 7;
+    break;
 
   default:
     break;

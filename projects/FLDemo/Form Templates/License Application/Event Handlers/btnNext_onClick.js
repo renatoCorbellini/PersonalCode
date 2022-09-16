@@ -36,8 +36,12 @@ switch (screen) {
     break;
 
   case 6:
+    screen = 7;
+    break;
+
+  case 7:
     if (VV.Form.Template.FormValidation_Screen6()) {
-      screen = 7;
+      screen = 8;
     } else {
       VV.Form.HideLoadingPanel();
       VV.Form.Global.DisplayMessaging(requiredFieldsMsg, title);

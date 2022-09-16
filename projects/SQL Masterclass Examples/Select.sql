@@ -33,3 +33,13 @@ where
     and 25
 order by
     funcionario.id;
+
+SELECT
+    customerName,
+    customercity,
+    customermail,
+    salestotal
+FROM
+    onlinecustomers AS oc
+    INNER JOIN orders AS o ON oc.customerid = o.customerid
+    INNER JOIN sales AS s ON o.orderId = s.orderId
